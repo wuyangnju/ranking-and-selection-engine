@@ -86,7 +86,11 @@ done < agents.conf
 curl -F slaveCount=$slaveCount -F rasConf=@$conf http://$masterHost:$masterPort/activateMaster
 
 mkdir -p $(dirname $0)/../log
-nohup sh $(dirname $0)/monitor.sh $masterHost $masterPort 2>&1 1>>$(dirname $0)/../log/$(date +%Y-%m-%d-%H-%M-%S).log &
+nohup sh $(dirname $0)/compact-monitor.sh $masterHost $masterPort 10 2>&1 1>>$(dirname $0)/../log/$(date +%Y-%m-%d-%H-%M-%S_compact).log &
+sleep 1
+nohup sh $(dirname $0)/full-monitor.sh $masterHost $masterPort 600 2>&1 1>>$(dirname $0)/../log/$(date +%Y-%m-%d-%H-%M-%S_full).log &
+sleep 1
+nohup sh $(dirname $0)/deleted-monitor.sh $masterHost $masterPort 1800 2>&1 1>>$(dirname $0)/../log/$(date +%Y-%m-%d-%H-%M-%S_deleted).log &
 
 slaveIdOffset=0;
 while read agentHost localSlaveCount

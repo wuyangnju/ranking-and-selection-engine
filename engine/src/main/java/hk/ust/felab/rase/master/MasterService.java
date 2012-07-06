@@ -45,6 +45,10 @@ public class MasterService {
 		return rasService.surviveCount();
 	}
 
+	public double[][] deletedSnapshot() {
+		return rasService.deletedSnapshot();
+	}
+
 	public double[][] altSnapshot() {
 		return rasService.altSnapshot();
 	}

@@ -1,7 +1,7 @@
 package hk.ust.felab.rase.slave;
 
 import hk.ust.felab.rase.common.Conf;
-import hk.ust.felab.rase.slave.impl.SampleGenerator;
+import hk.ust.felab.rase.slave.impl.SampleGenerator2;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -37,7 +37,7 @@ public class SlaveThread implements Runnable {
 
 	public SlaveThread(int slaveId) {
 		this.slaveId = slaveId;
-		this.sampleGenerator = new SampleGenerator(slaveId);
+		this.sampleGenerator = new SampleGenerator2(slaveId);
 	}
 
 	private double[][] requestTask() throws HttpException, IOException {

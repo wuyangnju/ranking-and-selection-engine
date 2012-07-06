@@ -100,6 +100,12 @@ public class MasterController {
 		return String.valueOf(masterService.survivalCount());
 	}
 
+	@RequestMapping(value = Conf.RAS_DELETED_STATUS, method = RequestMethod.GET)
+	@ResponseBody
+	public String rasDeletedStatus() {
+		return gson.toJson(masterService.deletedSnapshot());
+	}
+
 	@RequestMapping(value = Conf.RAS_STATUS, method = RequestMethod.GET)
 	@ResponseBody
 	public String rasStatus() {

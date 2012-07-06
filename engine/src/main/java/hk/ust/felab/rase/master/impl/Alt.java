@@ -32,9 +32,12 @@ public class Alt extends AltBase {
 	protected long doAddSample(double[] sample) {
 		data[0]++;
 		data[1] += sample[0];
-		data[2] += Math.pow(sample[0], 2);
 		data[3] = data[1] / data[0];
-		data[4] = (data[2] - data[0] * Math.pow(data[3], 2)) / (data[0] - 1);
+		//data[4] = (data[2] - data[0] * Math.pow(data[3], 2)) / (data[0] - 1);
+		if (data[0] < 30){
+            data[2] += Math.pow(sample[0], 2);
+            data[4] = (data[2] - data[0] * Math.pow(data[3], 2)) / (data[0] - 1);
+        }
 		return (long) data[0];
 	}
 

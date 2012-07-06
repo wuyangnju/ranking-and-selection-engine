@@ -9,6 +9,7 @@ public class Conf {
 
 	public static final String RAS_STATUS = "rasStatus";
 	public static final String RAS_SURVIVAL_COUNT = "rasSurvivalCount";
+	public static final String RAS_DELETED_STATUS = "rasDeletedStatus";
 
 	public static final String INIT_RAS = "initRAS";
 	public static final String START_RAS = "startRAS";

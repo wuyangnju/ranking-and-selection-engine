@@ -48,10 +48,14 @@ public class RASProcedure implements Runnable {
 						if (i != j && data[i][1] >= initnb
 								&& data[j][1] >= initnb) {
 							tau = Math.pow(
-									(data[i][5] / data[i][1] - data[j][5]
+									(data[i][5] / data[i][1] + data[j][5]
 											/ data[j][1]), (-1));
 							zpair = tau * (data[i][4] - data[j][4]);
-							if (zpair < Math.min(0, (-a + b * tau))) {
+							// TODO: extract the minimum or maximum
+							// for minimum
+							// if (zpair > Math.min(0, (a - b * tau))) {
+							// for maximum
+							if (zpair > Math.max(0, (a - b * tau))) {
 								toberev.add((int) data[i][0]);
 								break;
 							}
@@ -63,8 +67,8 @@ public class RASProcedure implements Runnable {
 					toberemove[i] = toberev.get(i);
 				}
 				rasService.removeAlts(toberemove);
-				
-				Thread.sleep(midSleep* 1000);
+
+				Thread.sleep(midSleep * 1000);
 				data = rasService.dataSnapshot();
 				lengofdata = data.length;
 			}

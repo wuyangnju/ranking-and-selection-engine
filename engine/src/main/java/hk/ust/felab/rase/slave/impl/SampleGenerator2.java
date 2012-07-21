@@ -57,7 +57,7 @@ public class SampleGenerator2 implements SampleGenerator {
 		try {
 			BufferedReader br = new BufferedReader(new InputStreamReader(
 					SampleGenerator2.class.getClassLoader()
-							.getResourceAsStream("data.csv")));
+							.getResourceAsStream("data/data.csv")));
 			String line = br.readLine();
 			while ((line = br.readLine()) != null) {
 				String[] items = line.split(",");

@@ -23,14 +23,20 @@ public class AgentController {
 	@ResponseBody
 	public String activateAgent(@RequestParam String masterHost,
 			@RequestParam int masterPort, @RequestParam int slaveIdOffset,
-			@RequestParam int localSlaveCount) {
+			@RequestParam int localSlaveCount,
+			@RequestParam String sampleGenerator,
+			@RequestParam int sampleCountStep) {
 		Conf.masterHost = masterHost;
 		Conf.masterPort = masterPort;
 		Conf.masterUrl = "http://" + Conf.masterHost + ":" + Conf.masterPort
 				+ "/";
 		Conf.slaveIdOffset = slaveIdOffset;
 		Conf.localSlaveCount = localSlaveCount;
-		agentService.activate();
+		try {
+			agentService.activate(sampleGenerator, sampleCountStep);
+		} catch (Exception e) {
+			return e.getMessage();
+		}
 		Conf.agentActivated = true;
 		log.info("Agent activated with slave from " + Conf.slaveIdOffset
 				+ " to " + (Conf.slaveIdOffset + Conf.localSlaveCount) + ".");

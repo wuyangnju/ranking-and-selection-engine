@@ -31,13 +31,6 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
 			<fileMode>0755</fileMode>
 		</fileSet>
 		<fileSet>
-			<directory>src/main/scripts/classpath</directory>
-			<outputDirectory>classes</outputDirectory>
-			<lineEnding>unix</lineEnding>
-			<directoryMode>0755</directoryMode>
-			<fileMode>0755</fileMode>
-		</fileSet>
-		<fileSet>
 			<directory>target/classes</directory>
 			<outputDirectory>classes</outputDirectory>
 		</fileSet>

@@ -9,6 +9,9 @@ import org.apache.commons.logging.LogFactory;
 
 public class SlaveThread implements Runnable {
 
+	private transient final Log log = LogFactory.getLog(this.getClass());
+
+	private transient final Log perf1 = LogFactory.getLog("slave.perf1");
 	/**
 	 * We can't log the sample # at spesific timestamp. We can only log the
 	 * timestamp when sample # reach some level, then plot sample #
@@ -16,7 +19,6 @@ public class SlaveThread implements Runnable {
 	 * 
 	 * @see src/main/resources/log4j.properties
 	 */
-	private transient final Log perf1 = LogFactory.getLog("slave.perf1");
 	private transient final Log perf2 = LogFactory.getLog("slave.perf2");
 
 	private SampleGenerator sampleGenerator;
@@ -40,11 +42,22 @@ public class SlaveThread implements Runnable {
 	public void run() {
 		while (true) {
 			perf1.trace(System.currentTimeMillis() + ",");
-			double[] altSystem = agentService.requestTask();
+			double[] altSystem = null;
+			try {
+				altSystem = agentService.getAlt();
+			} catch (InterruptedException e) {
+				log.warn(e, e);
+				continue;
+			}
 			perf1.trace(System.currentTimeMillis() + ",");
 			double sample = sampleGenerator.generate(altSystem)[0];
 			perf1.trace(System.currentTimeMillis() + "\n");
-			agentService.submitSample((long) altSystem[0], sample);
+			try {
+				agentService.putSample((long) altSystem[0], sample);
+			} catch (InterruptedException e) {
+				log.warn(e, e);
+				continue;
+			}
 			sampleCount++;
 			if (sampleCount % sampleCountStep == 0) {
 				perf2.trace(System.currentTimeMillis() + "," + sampleCount

@@ -85,6 +85,12 @@ public class MasterController {
 		return gson.toJson(masterService.requestTask(slaveId));
 	}
 
+	@RequestMapping(value = Conf.GET_ALTS, method = RequestMethod.POST)
+	@ResponseBody
+	public String getAlts(@RequestParam int altBufSize) {
+		return gson.toJson(masterService.getAlts(altBufSize));
+	}
+
 	@RequestMapping(value = Conf.SUBMIT_SAMPLE, method = RequestMethod.POST)
 	@ResponseBody
 	public String submitSample(@RequestParam String samplesJson) {

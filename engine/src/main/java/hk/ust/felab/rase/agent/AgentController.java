@@ -24,8 +24,8 @@ public class AgentController {
 	public String activateAgent(@RequestParam String masterHost,
 			@RequestParam int masterPort, @RequestParam int slaveIdOffset,
 			@RequestParam int localSlaveCount,
-			@RequestParam String sampleGenerator,
-			@RequestParam int sampleCountStep) {
+			@RequestParam String sampleGenerator, @RequestParam int altBufSize,
+			@RequestParam int sampleBufSize, @RequestParam int sampleCountStep) {
 		Conf.masterHost = masterHost;
 		Conf.masterPort = masterPort;
 		Conf.masterUrl = "http://" + Conf.masterHost + ":" + Conf.masterPort
@@ -33,13 +33,17 @@ public class AgentController {
 		Conf.slaveIdOffset = slaveIdOffset;
 		Conf.localSlaveCount = localSlaveCount;
 		try {
-			agentService.activate(sampleGenerator, sampleCountStep);
+			agentService.activate(sampleGenerator, altBufSize, sampleBufSize,
+					sampleCountStep);
 		} catch (Exception e) {
 			return e.getMessage();
 		}
 		Conf.agentActivated = true;
 		log.info("Agent activated with slave from " + Conf.slaveIdOffset
-				+ " to " + (Conf.slaveIdOffset + Conf.localSlaveCount) + ".");
+				+ " to " + (Conf.slaveIdOffset + Conf.localSlaveCount)
+				+ ".\nsampleGenerator: " + sampleGenerator + "\naltBufSize: "
+				+ altBufSize + "\nsampleBufSize: " + sampleBufSize
+				+ "\nsampleCountStep: " + sampleBufSize);
 		return "";
 	}
 }

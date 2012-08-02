@@ -35,10 +35,19 @@ public class MasterService {
 		return tasks;
 	}
 
+	public double[][] getAlts(int altBufSize) {
+		//TODO pull alts
+		return null;
+	}
+
 	public long submitSample(double[][] sample) {
 		double[] singleSample = new double[sample[0].length - 1];
 		System.arraycopy(sample[0], 1, singleSample, 0, sample[0].length - 1);
 		return rasService.addSample((int) sample[0][0], singleSample);
+	}
+	
+	public void putSamples(){
+		//TODO push sample
 	}
 
 	public long survivalCount() {

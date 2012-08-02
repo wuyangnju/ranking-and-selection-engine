@@ -14,11 +14,15 @@ public class Conf {
 	public static final String INIT_RAS = "initRAS";
 	public static final String START_RAS = "startRAS";
 
+	public static final String GET_ALTS = "getAlts";
+
 	/**
 	 * @parameter localSlaveId
 	 * @return altSystems:2d array, a[i][0]: alt system id
 	 */
 	public static final String REQUEST_TASK = "requestTask";
+
+	public static final String PUT_SAMPLES = "putSamples";
 
 	/**
 	 * @parameter samplesWithSysId:2d array, a[i][0]: alt system id

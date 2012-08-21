@@ -17,7 +17,7 @@ trialCount=$3;
 min=true
 alpha=0.05
 delta=1
-n0=10
+n0=20
 fix=true
 
 altsConf=$(pwd)/$2

@@ -17,10 +17,10 @@ altsConf=$(pwd)/$1
 
 masterHost=localhost
 masterPort=5567
-masterAltBufSize=8
+masterAltBufSize=256
 masterSampleBufSize=1024
 
-agentAltBufSize=4
+agentAltBufSize=128
 agentSampleBufSize=1024
 
 slaveIdOffset=0

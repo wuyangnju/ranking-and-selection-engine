@@ -177,4 +177,12 @@ public class AgentService {
 		}
 	}
 
+	public String bufStatus() {
+		String altBufStatus = "altBuf: " + altBuf.size() + "/"
+				+ ClusterConf.get().masterAltBufSize + "\n";
+		String sampleBufStatus = "sampleBuf: " + sampleBuf.size() + "/"
+				+ ClusterConf.get().masterSampleBufSize + "\n";
+		return altBufStatus + sampleBufStatus;
+	}
+
 }

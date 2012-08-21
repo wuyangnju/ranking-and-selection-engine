@@ -1,5 +1,6 @@
 package hk.ust.felab.rase.master;
 
+import hk.ust.felab.rase.agent.AgentService;
 import hk.ust.felab.rase.conf.ClusterConf;
 import hk.ust.felab.rase.conf.RasConf;
 import hk.ust.felab.rase.util.GsonUtil;
@@ -34,6 +35,9 @@ public class MasterController {
 
 	@Resource
 	private MasterService masterService;
+
+	@Resource
+	private AgentService agentService;
 
 	private double[] stringToArgList(String line) {
 		String[] argsStr = line.split(" ");
@@ -121,7 +125,14 @@ public class MasterController {
 	@RequestMapping(value = ClusterConf.RAS_STATUS, method = RequestMethod.GET)
 	@ResponseBody
 	public String rasStatus() {
-		return masterService.rasStatus();
+		StringBuilder rasStatus = new StringBuilder(masterService.rasStatus());
+		if (ClusterConf.get().isMaster) {
+			rasStatus.append("master: " + masterService.bufStatus());
+		}
+		if (ClusterConf.get().isAgent) {
+			rasStatus.append("agent: " + agentService.bufStatus());
+		}
+		return rasStatus.toString();
 	}
 
 	@RequestMapping(value = ClusterConf.RAS_RESULT, method = RequestMethod.GET)

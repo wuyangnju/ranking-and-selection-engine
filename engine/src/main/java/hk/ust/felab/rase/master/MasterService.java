@@ -2,6 +2,7 @@ package hk.ust.felab.rase.master;
 
 import hk.ust.felab.rase.conf.ClusterConf;
 import hk.ust.felab.rase.conf.RasConf;
+import hk.ust.felab.rase.util.GsonUtil;
 import hk.ust.felab.rase.util.IndexedPriorityQueue;
 
 import java.lang.reflect.InvocationTargetException;
@@ -163,6 +164,8 @@ public class MasterService {
 	}
 
 	private void rasSuccess() {
+		resultLog.info(GsonUtil.gsonDes().toJson(ClusterConf.get()) + "\n");
+		resultLog.info(GsonUtil.gsonDes().toJson(RasConf.get()) + "\n");
 		resultLog.info(RasConf.get().trialId + "," + alts1.peek().getId()
 				+ "\n");
 		Runtime.getRuntime().addShutdownHook(new Thread() {

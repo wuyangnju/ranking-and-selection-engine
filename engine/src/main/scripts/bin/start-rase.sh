@@ -1,11 +1,9 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]; then
-    echo "usage: $0 version conf"
+if [ $# -ne 3 ]; then
+    echo "usage: $0 version conf trialCount"
     exit 1
 fi
-
-conf=$2
 
 version=$1
 m2Dir=/home/ielm/m2/hk/ust/felab/rase/$version
@@ -14,8 +12,27 @@ m2Dist=rase-$version-bin.zip
 raseRoot=/home/ielm/rase
 raseLog=/home/ielm/rase_log
 
+trialCount=$3;
+
+min=true
+alpha=0.05
+delta=1
+n0=10
+fix=true
+
+altsConf=$(pwd)/$2
+
 masterHost=192.168.1.1
 masterPort=5567
+masterAltBufSize=8
+masterSampleBufSize=1024
+
+agentAltBufSize=4
+agentSampleBufSize=1024
+
+slaveIdOffset=0
+slaveSampleGenerator=DelayedNormal
+slaveSampleCountStep=1
 
 function foreach_ssh()
 {
@@ -30,7 +47,20 @@ function foreach_ssh()
     done
 }
 
-function foreach_ssh2()
+function reverse_foreach_ssh()
+{
+    for i in $(seq 9 -1 1)
+    do
+        ssh felab-$i $*
+        if [ $? -eq 0 ]; then
+            echo "ssh felab-$i $* done."
+        else
+            echo "ssh felab-$i $* fail."
+        fi
+    done
+}
+
+function foreach_async_ssh()
 {
     for i in $(seq 1 9)
     do
@@ -56,16 +86,9 @@ function foreach_scp()
     done
 }
 
-foreach_ssh pkill java
-foreach_ssh mkdir -p $raseRoot
-foreach_ssh rm -rf $raseRoot/*
-foreach_scp ${m2Dir}/${m2Dist} $raseRoot/
-foreach_ssh unzip $raseRoot/${m2Dist}
-foreach_ssh2 ${raseRoot}/bin/run.sh
-
 cat <<- AGENTS > agents.conf
-felab-1 48
-felab-2 48
+felab-1 4
+felab-2 4
 felab-3 4
 felab-4 4
 felab-5 4
@@ -76,28 +99,58 @@ felab-9 4
 AGENTS
 
 set -x
-sleep 5
 
-slaveCount=0;
-while read agentHost localSlaveCount
+slaveTotalCount=0;
+while read agentHost slaveLocalCount
 do
-    slaveCount=$(($slaveCount+$localSlaveCount))
+    slaveTotalCount=$(($slaveTotalCount+$slaveLocalCount))
 done < agents.conf
-curl -F slaveCount=$slaveCount -F rasConf=@$conf http://$masterHost:$masterPort/activateMaster
 
-mkdir -p $(dirname $0)/../log
-nohup sh $(dirname $0)/compact-monitor.sh $masterHost $masterPort 10 2>&1 1>>$(dirname $0)/../log/$(date +%Y-%m-%d-%H-%M-%S_compact).log &
-sleep 1
-nohup sh $(dirname $0)/full-monitor.sh $masterHost $masterPort 600 2>&1 1>>$(dirname $0)/../log/$(date +%Y-%m-%d-%H-%M-%S_full).log &
-sleep 1
-nohup sh $(dirname $0)/deleted-monitor.sh $masterHost $masterPort 1800 2>&1 1>>$(dirname $0)/../log/$(date +%Y-%m-%d-%H-%M-%S_deleted).log &
+reverse_foreach_ssh pkill java
+foreach_ssh mkdir -p $raseRoot
+foreach_ssh rm -rf $raseRoot/*
+foreach_scp ${m2Dir}/${m2Dist} $raseRoot/
+foreach_ssh unzip $raseRoot/${m2Dist}
+for trialId in $(seq 0 $(($trialCount-1))); do
+    foreach_async_ssh ${raseRoot}/bin/run.sh
+    sleep 5
 
-slaveIdOffset=0;
-while read agentHost localSlaveCount
-do
-    echo $agentHost
-    curl -d "masterHost=$masterHost&masterPort=$masterPort&slaveIdOffset=$slaveIdOffset&localSlaveCount=$localSlaveCount" http://$agentHost:$masterPort/activateAgent
-    slaveIdOffset=$(($slaveIdOffset+$localSlaveCount))
-done < agents.conf
+    args="-F masterAltBufSize=$masterAltBufSize"
+    args=${args}" -F masterSampleBufSize=$masterSampleBufSize"
+    args=${args}" -F min=$min"
+    args=${args}" -F alpha=$alpha"
+    args=${args}" -F delta=$delta"
+    args=${args}" -F n0=$n0"
+    args=${args}" -F fix=$fix"
+    args=${args}" -F altsConf=@$altsConf"
+    curl $args http://$masterHost:$masterPort/activateMaster
+
+    slaveIdOffset=0;
+    while read agentHost slaveLocalCount
+    do
+        echo $agentHost
+        args="trialId=$trialId"
+        args=${args}"&masterHost=$masterHost"
+        args=${args}"&masterPort=$masterPort"
+        args=${args}"&agentAltBufSize=$agentAltBufSize"
+        args=${args}"&agentSampleBufSize=$agentSampleBufSize"
+        args=${args}"&slaveIdOffset=$slaveIdOffset"
+        args=${args}"&slaveLocalCount=$slaveLocalCount"
+        args=${args}"&slaveTotalCount=$slaveTotalCount"
+        args=${args}"&slaveSampleGenerator=$slaveSampleGenerator"
+        args=${args}"&slaveSampleCountStep=$slaveSampleCountStep"
+        curl -d ${args} http://$agentHost:$masterPort/activateAgent
+        slaveIdOffset=$(($slaveIdOffset+$slaveLocalCount))
+    done < agents.conf
+    set +x
+    result=$(curl http://$masterHost:$masterPort/rasResult 2>/dev/null)
+    while [ $result -lt 0 ]; do
+        sleep 1;
+        result=$(curl http://$masterHost:$masterPort/rasResult 2>/dev/null)
+    done
+    echo $trialId", "$result
+    set -x
+    reverse_foreach_ssh pkill java
+done
 
 rm -rf agents.conf

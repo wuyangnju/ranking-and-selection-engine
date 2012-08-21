@@ -15,9 +15,6 @@ xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assemb
 	<fileSets>
 		<fileSet>
 			<directory>src/main/scripts/bin</directory>
-			<includes>
-				<include>*.sh</include>
-			</includes>
 			<outputDirectory>bin</outputDirectory>
 			<lineEnding>unix</lineEnding>
 			<directoryMode>0755</directoryMode>

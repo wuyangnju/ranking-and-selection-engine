@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MAIN_CLASS="hk.ust.felab.rase.common.EmbededJettyRunner"
+MAIN_CLASS="hk.ust.felab.rase.runner.EmbededJettyRunner"
 PORT=5567
 CONTEXT_PATH=/
 LOG_FILE=app.log
@@ -12,4 +12,4 @@ do
 done
 
 mkdir -p "$(dirname $0)/../log"
-nohup java -cp "${CLASSPATH}" "${MAIN_CLASS}" -p "${PORT}" -c "${CONTEXT_PATH}" -w $(dirname $0)/../war "$@" 2>&1 1>> $(dirname $0)/../log/${LOG_FILE} &
+nohup java -cp "${CLASSPATH}" "${MAIN_CLASS}" "${PORT}" "${CONTEXT_PATH}" "$(dirname $0)/../war" "$@" 2>&1 1>> "$(dirname $0)/../log/${LOG_FILE}" &

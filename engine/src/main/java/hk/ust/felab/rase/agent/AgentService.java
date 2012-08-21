@@ -1,8 +1,10 @@
 package hk.ust.felab.rase.agent;
 
-import hk.ust.felab.rase.common.Conf;
+import hk.ust.felab.rase.conf.ClusterConf;
+import hk.ust.felab.rase.conf.RasConf;
 import hk.ust.felab.rase.master.MasterService;
 import hk.ust.felab.rase.slave.SlaveThread;
+import hk.ust.felab.rase.util.GsonUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,15 +15,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -29,116 +29,122 @@ import com.google.gson.Gson;
 @Service
 public class AgentService {
 
-	private transient final Log log = LogFactory.getLog(this.getClass());
+	private transient final Logger log = Logger.getLogger(getClass());
 
-	private int altBufSize;
+	@Resource(name = GsonUtil.GSON_FLOAT)
+	private Gson gson;
 
 	@Resource
 	private MasterService masterService;
 
-	@Resource
-	private HttpClient client;
+	private HttpClient clientPull = new HttpClient();
+	private HttpClient clientPush = new HttpClient();
 
-	@Resource
-	private Gson gson;
+	private ArrayList<Runnable> slaveThreads = new ArrayList<Runnable>();
 
-	private ArrayList<SlaveThread> slaveThreads = new ArrayList<SlaveThread>();
-
-	private ArrayList<BlockingQueue<double[]>> altBuf = new ArrayList<BlockingQueue<double[]>>(
-			2);
-	private int curAltBuf = 0;
-	private ReentrantLock altLock = new ReentrantLock(true);
-
+	private BlockingQueue<double[]> altBuf;
 	private BlockingQueue<double[]> sampleBuf;
-	private Object sampleSignal = new Object();
 
-	public void activate(String sampleGenerator, int altBufSize,
-			int sampleBufSize, int sampleCountStep)
-			throws IllegalArgumentException, SecurityException,
+	public void activate() throws IllegalArgumentException, SecurityException,
 			InstantiationException, IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException,
-			ClassNotFoundException {
+			ClassNotFoundException, IOException {
 
-		this.altBufSize = altBufSize;
-
-		for (int i = 0; i < 2; i++) {
-			altBuf.set(i, new LinkedBlockingQueue<double[]>(altBufSize));
-		}
-		pullAlts(0);
-
-		sampleBuf = new LinkedBlockingQueue<double[]>(sampleBufSize);
+		altBuf = new LinkedBlockingQueue<double[]>(
+				ClusterConf.get().agentAltBufSize);
+		sampleBuf = new LinkedBlockingQueue<double[]>(
+				ClusterConf.get().agentSampleBufSize);
 
 		Executor executor = Executors
-				.newFixedThreadPool(Conf.localSlaveCount + 1);
-
-		executor.execute(new PushSampleThread());
-
-		for (int i = 0; i < Conf.localSlaveCount; i++) {
-			slaveThreads.add(new SlaveThread(Conf.slaveIdOffset + i,
-					sampleGenerator, sampleCountStep, this));
+				.newFixedThreadPool(ClusterConf.get().slaveLocalCount + 2);
+		executor.execute(new PullAltsThread());
+		executor.execute(new PushSamplesThread());
+		for (int i = 0; i < ClusterConf.get().slaveLocalCount; i++) {
+			int slaveId = ClusterConf.get().slaveIdOffset + i;
+			slaveThreads.add(new SlaveThread(slaveId, RasConf.get().trialId
+					* ClusterConf.get().slaveTotalCount + slaveId, this));
 			executor.execute(slaveThreads.get(i));
 		}
-
-		new Thread(new AsyncPullAlts(1)).start();
 	}
 
 	public double[] getAlt() throws InterruptedException {
-		altLock.lock();
-		double[] alt = altBuf.get(curAltBuf).poll();
-		try {
-			if (alt != null) {
-				return alt;
-			} else {
-				new Thread(new AsyncPullAlts(curAltBuf)).start();
-				curAltBuf = (curAltBuf + 1) % 2;
-				return altBuf.get(curAltBuf).take();
-			}
-		} finally {
-			altLock.unlock();
-		}
+		return altBuf.take();
 	}
 
-	void pullAlts(int altBufIndex) {
+	void pullAlts(int demand) {
 		double[][] alts = null;
-		if (Conf.masterActivated) {
-			alts = masterService.getAlts(altBufSize);
+		if (ClusterConf.get().isMaster) {
+			try {
+				alts = masterService.getAlts(demand);
+			} catch (InterruptedException e) {
+				log.error(e, e);
+			}
 		} else {
-			PostMethod method = new PostMethod(Conf.masterUrl + Conf.GET_ALTS);
-			method.addParameter("altBufSize", String.valueOf(altBufSize));
+			PostMethod method = new PostMethod(ClusterConf.get().masterUrl
+					+ ClusterConf.GET_ALTS);
+			method.addParameter("demand", String.valueOf(demand));
 			String altSystemsJson = null;
 			try {
-				client.executeMethod(method);
+				clientPull.executeMethod(method);
 				BufferedReader br = new BufferedReader(new InputStreamReader(
 						method.getResponseBodyAsStream()));
 				altSystemsJson = br.readLine();
+				br.close();
 			} catch (HttpException e) {
 				log.error(e, e);
 			} catch (IOException e) {
 				log.error(e, e);
 			}
-			alts = gson.fromJson(altSystemsJson, double[][].class);
+			try {
+				alts = gson.fromJson(altSystemsJson, double[][].class);
+			} catch (Exception e) {
+				log.error(altSystemsJson);
+			}
 		}
 		for (double[] alt : alts) {
-			altBuf.get(altBufIndex).offer(alt);
+			altBuf.offer(alt);
 		}
 	}
 
-	public void putSample(long altId, double sample)
-			throws InterruptedException {
-		sampleBuf.put(new double[] { altId, sample });
-		sampleSignal.notify();
+	class PullAltsThread implements Runnable {
+		@Override
+		public void run() {
+			int demand;
+			while (true) {
+				demand = ClusterConf.get().agentAltBufSize - altBuf.size();
+				if (demand > ClusterConf.get().agentAltBufSize / 2) {
+					pullAlts(demand);
+				} else {
+					try {
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+						log.warn(e, e);
+						continue;
+					}
+				}
+			}
+		}
 	}
 
-	void pushSample(double[][] samples) {
-		if (Conf.masterActivated) {
-			masterService.putSamples();
+	public void putSample(int altId, double sample, double simTime)
+			throws InterruptedException {
+		sampleBuf.put(new double[] { altId, sample, simTime });
+	}
+
+	void pushSamples(double[][] samples) {
+		if (ClusterConf.get().isMaster) {
+			try {
+				masterService.putSamples(samples);
+			} catch (InterruptedException e) {
+				log.error(e, e);
+			}
 		} else {
-			PostMethod method = new PostMethod(Conf.masterUrl
-					+ Conf.SUBMIT_SAMPLE);
+			PostMethod method = new PostMethod(ClusterConf.get().masterUrl
+					+ ClusterConf.PUT_SAMPLES);
 			String samplesJson = gson.toJson(samples);
 			method.addParameter("samplesJson", samplesJson);
 			try {
-				client.executeMethod(method);
+				clientPush.executeMethod(method);
 			} catch (HttpException e) {
 				log.error(e, e);
 			} catch (IOException e) {
@@ -147,38 +153,25 @@ public class AgentService {
 		}
 	}
 
-	class AsyncPullAlts implements Runnable {
-		private int altBufIndex;
-
-		public AsyncPullAlts(int altBufIndex) {
-			this.altBufIndex = altBufIndex;
-		}
-
+	class PushSamplesThread implements Runnable {
 		@Override
 		public void run() {
-			pullAlts(this.altBufIndex);
-		}
-
-	}
-
-	class PushSampleThread implements Runnable {
-
-		@Override
-		public void run() {
+			ArrayList<double[]> samples;
+			int batchSize;
 			while (true) {
-				try {
-					ArrayList<double[]> samples;
-					int batchSize;
-					while ((batchSize = sampleBuf.size()) > 0) {
-						samples = new ArrayList<double[]>();
-						for (int i = 0; i < batchSize; i++) {
-							samples.add(sampleBuf.poll());
-						}
-						pushSample(samples.toArray(new double[][] {}));
+				if ((batchSize = sampleBuf.size()) > 0) {
+					samples = new ArrayList<double[]>(batchSize);
+					for (int i = 0; i < batchSize; i++) {
+						samples.add(sampleBuf.poll());
 					}
-					sampleSignal.wait();
-				} catch (InterruptedException e) {
-					log.error(e, e);
+					pushSamples(samples.toArray(new double[][] {}));
+				} else {
+					try {
+						Thread.sleep(1);
+					} catch (InterruptedException e) {
+						log.warn(e, e);
+						continue;
+					}
 				}
 			}
 		}

@@ -1,49 +1,68 @@
 package hk.ust.felab.rase.agent;
 
-import hk.ust.felab.rase.common.Conf;
+import hk.ust.felab.rase.conf.ClusterConf;
+import hk.ust.felab.rase.conf.RasConf;
+import hk.ust.felab.rase.util.GsonUtil;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.google.gson.Gson;
+
 @Controller
 public class AgentController {
-	private transient final Log log = LogFactory.getLog(this.getClass());
+	@Resource(name = GsonUtil.GSON_DES)
+	private Gson gson;
 
 	@Resource
 	private AgentService agentService;
 
-	@RequestMapping(value = Conf.ACTIVATE_AGENT, method = RequestMethod.POST)
+	@RequestMapping(value = ClusterConf.ACTIVATE_AGENT, method = RequestMethod.POST)
 	@ResponseBody
-	public String activateAgent(@RequestParam String masterHost,
-			@RequestParam int masterPort, @RequestParam int slaveIdOffset,
-			@RequestParam int localSlaveCount,
-			@RequestParam String sampleGenerator, @RequestParam int altBufSize,
-			@RequestParam int sampleBufSize, @RequestParam int sampleCountStep) {
-		Conf.masterHost = masterHost;
-		Conf.masterPort = masterPort;
-		Conf.masterUrl = "http://" + Conf.masterHost + ":" + Conf.masterPort
+	public String activateAgent(@RequestParam int trialId,
+			@RequestParam String masterHost, @RequestParam int masterPort,
+			@RequestParam int agentAltBufSize,
+			@RequestParam int agentSampleBufSize,
+			@RequestParam int slaveIdOffset, @RequestParam int slaveLocalCount,
+			@RequestParam int slaveTotalCount,
+			@RequestParam String slaveSampleGenerator,
+			@RequestParam int slaveSampleCountStep) {
+
+		RasConf.get().trialId = trialId;
+
+		ClusterConf.get().masterHost = masterHost;
+		ClusterConf.get().masterPort = masterPort;
+		ClusterConf.get().masterUrl = "http://" + masterHost + ":" + masterPort
 				+ "/";
-		Conf.slaveIdOffset = slaveIdOffset;
-		Conf.localSlaveCount = localSlaveCount;
+
+		ClusterConf.get().agentAltBufSize = agentAltBufSize;
+		ClusterConf.get().agentSampleBufSize = agentSampleBufSize;
+
+		ClusterConf.get().slaveIdOffset = slaveIdOffset;
+		ClusterConf.get().slaveLocalCount = slaveLocalCount;
+		ClusterConf.get().slaveTotalCount = slaveTotalCount;
+		ClusterConf.get().slaveSampleGenerator = slaveSampleGenerator;
+		ClusterConf.get().slaveSampleCountStep = slaveSampleCountStep;
+
 		try {
-			agentService.activate(sampleGenerator, altBufSize, sampleBufSize,
-					sampleCountStep);
+			agentService.activate();
 		} catch (Exception e) {
-			return e.getMessage();
+			return e.toString();
 		}
-		Conf.agentActivated = true;
-		log.info("Agent activated with slave from " + Conf.slaveIdOffset
-				+ " to " + (Conf.slaveIdOffset + Conf.localSlaveCount)
-				+ ".\nsampleGenerator: " + sampleGenerator + "\naltBufSize: "
-				+ altBufSize + "\nsampleBufSize: " + sampleBufSize
-				+ "\nsampleCountStep: " + sampleBufSize);
-		return "";
+
+		ClusterConf.get().isAgent = true;
+
+		return gson.toJson(ClusterConf.get()) + "\n";
+	}
+
+	@RequestMapping(value = ClusterConf.README, method = RequestMethod.GET)
+	@ResponseBody
+	public String readme() {
+		return "ranking and selection engine\n";
 	}
 }

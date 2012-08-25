@@ -173,6 +173,7 @@ public class MasterService {
 		resultLog.info(RasConf.get().trialId + "," + alts1.peek().getId()
 				+ "\n");
 		logAfterProcessSample();
+		siftLog.trace("\n");
 		LogManager.shutdown();
 		result.set(alts1.peek().getId());
 		synchronized (this) {
@@ -209,6 +210,7 @@ public class MasterService {
 		double k1, k2, k3;
 		Alt alt0 = alts[altId - 1], alt1;
 		if (!alt0.isSurviving()) {
+			siftLog.trace("-1\n");
 			return;
 		}
 		if (alt0.num() > RasConf.get().n0) {
@@ -359,7 +361,7 @@ public class MasterService {
 		sampleCount++;
 		if (sampleCount % ClusterConf.get().slaveSampleCountStep == 0) {
 			perf2.trace(System.currentTimeMillis() + "," + sampleCount + ","
-					+ survivalCount + "\n");
+					+ survivalCount + "," + secondStageCount + "\n");
 		}
 	}
 

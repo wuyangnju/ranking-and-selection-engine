@@ -13,6 +13,9 @@ raseRoot=/home/ielm/rase
 raseLog=/home/ielm/rase_log
 
 altsConf=$(pwd)/$2
+if [ ! -f $altsConf ]; then
+    altsConf=$2
+fi
 
 min=true
 alpha=0.05

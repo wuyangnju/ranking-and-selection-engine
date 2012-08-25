@@ -6,6 +6,9 @@ if [ $# -ne 3 ]; then
 fi
 
 altsConf=$(pwd)/$1
+if [ ! -f $altsConf ]; then
+    altsConf=$1
+fi
 
 min=true
 alpha=0.05

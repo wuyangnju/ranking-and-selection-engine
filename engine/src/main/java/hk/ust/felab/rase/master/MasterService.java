@@ -28,6 +28,8 @@ public class MasterService {
 	private transient final Logger siftLog = Logger.getLogger("master.sift");
 	private transient final Logger elimationLog = Logger
 			.getLogger("master.elimation");
+	private transient final Logger elimation2Log = Logger
+			.getLogger("master.elimation2");
 	private transient final Logger resultLog = Logger.getLogger("ras.result");
 
 	private double[][] altsArgs;
@@ -46,6 +48,7 @@ public class MasterService {
 	private AtomicInteger result = new AtomicInteger(-1);
 
 	private long sampleCount = 0;
+	private int elimationCount = 0;
 	private volatile int secondStageCount = 0;
 
 	/**
@@ -189,6 +192,7 @@ public class MasterService {
 		alt.setSurviving(false);
 		elimationLog.trace(System.currentTimeMillis() + "," + alt.getId()
 				+ "\n");
+		elimationCount++;
 		survivalCount--;
 		if (survivalCount == 1) {
 			rasSuccess();
@@ -351,6 +355,9 @@ public class MasterService {
 			while (true) {
 				try {
 					sample = sampleBuf.take();
+					sampleLog.trace((int) sample[0] + "," + sample[1] + ","
+							+ sample[2] + "\n");
+					elimationCount = 0;
 					perf1.trace(System.currentTimeMillis() + ",");
 					processSample((int) sample[0], sample[1], (long) sample[2]);
 				} catch (InterruptedException e) {
@@ -358,9 +365,8 @@ public class MasterService {
 					continue;
 				} finally {
 					perf1.trace(System.currentTimeMillis() + "\n");
+					elimation2Log.trace(elimationCount + "\n");
 				}
-				sampleLog.trace((int) sample[0] + "," + sample[1] + ","
-						+ sample[2] + "\n");
 				sampleCount++;
 				if (sampleCount % ClusterConf.get().slaveSampleCountStep == 0) {
 					perf2.trace(System.currentTimeMillis() + "," + sampleCount

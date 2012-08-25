@@ -30,6 +30,7 @@ public class MasterService {
 			.getLogger("master.elimation");
 	private transient final Logger elimation2Log = Logger
 			.getLogger("master.elimation2");
+	private transient final Logger bufLog = Logger.getLogger("master.buf");
 	private transient final Logger resultLog = Logger.getLogger("ras.result");
 
 	private double[][] altsArgs;
@@ -366,6 +367,7 @@ public class MasterService {
 				} finally {
 					perf1.trace(System.currentTimeMillis() + "\n");
 					elimation2Log.trace(elimationCount + "\n");
+					bufLog.trace(altBuf.size() + "," + sampleBuf.size() + "\n");
 				}
 				sampleCount++;
 				if (sampleCount % ClusterConf.get().slaveSampleCountStep == 0) {

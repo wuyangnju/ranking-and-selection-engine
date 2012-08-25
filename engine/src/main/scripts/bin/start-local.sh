@@ -1,19 +1,18 @@
 #!/bin/bash
 
 if [ $# -ne 3 ]; then
-    echo "usage: $0 conf slaveCount trialCount"
+    echo "usage: $0 altsConf slaveCount trialCount"
     exit 1
 fi
 
-trialCount=$3;
+altsConf=$(pwd)/$1
 
 min=true
 alpha=0.05
 delta=1
 n0=10
-fix=false
-
-altsConf=$(pwd)/$1
+fix=true
+trialCount=$3;
 
 masterHost=localhost
 masterPort=5567

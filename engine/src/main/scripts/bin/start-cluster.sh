@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -ne 3 ]; then
-    echo "usage: $0 version conf trialCount"
+    echo "usage: $0 version altsConf trialCount"
     exit 1
 fi
 
@@ -12,27 +12,34 @@ m2Dist=rase-$version-bin.zip
 raseRoot=/home/ielm/rase
 raseLog=/home/ielm/rase_log
 
-trialCount=$3;
+altsConf=$(pwd)/$2
 
 min=true
 alpha=0.05
 delta=1
 n0=20
 fix=true
-
-altsConf=$(pwd)/$2
+trialCount=$3;
 
 masterHost=192.168.1.1
 masterPort=5567
-masterAltBufSize=8
-masterSampleBufSize=1024
-
-agentAltBufSize=4
-agentSampleBufSize=1024
 
 slaveIdOffset=0
 slaveSampleGenerator=DelayedNormal
 slaveSampleCountStep=1
+
+rm -rf agents.conf
+cat <<- AGENTS > agents.conf
+felab-1 4
+felab-2 4
+felab-3 4
+felab-4 4
+felab-5 4
+felab-6 4
+felab-7 4
+felab-8 4
+felab-9 4
+AGENTS
 
 function foreach_ssh()
 {
@@ -86,18 +93,6 @@ function foreach_scp()
     done
 }
 
-cat <<- AGENTS > agents.conf
-felab-1 4
-felab-2 4
-felab-3 4
-felab-4 4
-felab-5 4
-felab-6 4
-felab-7 4
-felab-8 4
-felab-9 4
-AGENTS
-
 set -x
 
 slaveTotalCount=0;
@@ -115,8 +110,8 @@ for trialId in $(seq 0 $(($trialCount-1))); do
     foreach_async_ssh ${raseRoot}/bin/run.sh
     sleep 5
 
-    args="-F masterAltBufSize=$masterAltBufSize"
-    args=${args}" -F masterSampleBufSize=$masterSampleBufSize"
+    args="-F masterAltBufSize=$((${slaveTotalCount}*4))"
+    args=${args}" -F masterSampleBufSize=$((${slaveTotalCount}*16))"
     args=${args}" -F min=$min"
     args=${args}" -F alpha=$alpha"
     args=${args}" -F delta=$delta"
@@ -132,8 +127,8 @@ for trialId in $(seq 0 $(($trialCount-1))); do
         args="trialId=$trialId"
         args=${args}"&masterHost=$masterHost"
         args=${args}"&masterPort=$masterPort"
-        args=${args}"&agentAltBufSize=$agentAltBufSize"
-        args=${args}"&agentSampleBufSize=$agentSampleBufSize"
+        args=${args}"&agentAltBufSize=$((${slaveLocalCount}*2))"
+        args=${args}"&agentSampleBufSize=$((${slaveLocalCount}*8))"
         args=${args}"&slaveIdOffset=$slaveIdOffset"
         args=${args}"&slaveLocalCount=$slaveLocalCount"
         args=${args}"&slaveTotalCount=$slaveTotalCount"

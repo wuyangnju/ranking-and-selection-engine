@@ -172,12 +172,16 @@ public class MasterService {
 		resultLog.info(GsonUtil.gsonDes().toJson(RasConf.get()) + "\n");
 		resultLog.info(RasConf.get().trialId + "," + alts1.peek().getId()
 				+ "\n");
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				LogManager.shutdown();
-			}
-		});
+		logAfterProcessSample();
+		LogManager.shutdown();
 		result.set(alts1.peek().getId());
+		synchronized (this) {
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				log.warn(e, e);
+			}
+		}
 	}
 
 	private void remove(Alt alt) {
@@ -348,6 +352,17 @@ public class MasterService {
 		siftLog.trace("\n");
 	}
 
+	private void logAfterProcessSample() {
+		perf1.trace(System.currentTimeMillis() + "\n");
+		elimation2Log.trace(elimationCount + "\n");
+		bufLog.trace(altBuf.size() + "," + sampleBuf.size() + "\n");
+		sampleCount++;
+		if (sampleCount % ClusterConf.get().slaveSampleCountStep == 0) {
+			perf2.trace(System.currentTimeMillis() + "," + sampleCount + ","
+					+ survivalCount + "\n");
+		}
+	}
+
 	class ConsumeSampleThread implements Runnable {
 		@Override
 		public void run() {
@@ -365,14 +380,7 @@ public class MasterService {
 					log.warn(e, e);
 					continue;
 				} finally {
-					perf1.trace(System.currentTimeMillis() + "\n");
-					elimation2Log.trace(elimationCount + "\n");
-					bufLog.trace(altBuf.size() + "," + sampleBuf.size() + "\n");
-				}
-				sampleCount++;
-				if (sampleCount % ClusterConf.get().slaveSampleCountStep == 0) {
-					perf2.trace(System.currentTimeMillis() + "," + sampleCount
-							+ "," + survivalCount + "\n");
+					logAfterProcessSample();
 				}
 			}
 		}

@@ -146,7 +146,9 @@ public class MasterService {
 						if (secondStageCount < RasConf.get().k) {
 							altBuf.put(alts[index]);
 						} else {
-							int batch = (int) ((alt.thetaOverY() + 0.001) / Alt.minThetaOverSqrtY);
+							int batch = Math
+									.max(1,
+											(int) (alt.thetaOverY() / Alt.minThetaOverSqrtY));
 							for (int i = 0; i < batch; i++) {
 								altBuf.put(alts[index]);
 							}
@@ -393,6 +395,8 @@ public class MasterService {
 			return String.valueOf(survivalCount);
 		} else {
 			StringBuilder sb = new StringBuilder("");
+			sb.append("survivalCount: " + survivalCount + " secondStageCount: "
+					+ secondStageCount + " ");
 			for (Alt alt : alts) {
 				if (alt.isSurviving()) {
 					sb.append(alt.toString());

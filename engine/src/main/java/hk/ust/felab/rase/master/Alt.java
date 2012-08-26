@@ -75,6 +75,7 @@ public class Alt implements Indexed {
 			if (data[0] < RasConf.get().n0) {
 				update(sample, simTime);
 			} else if (data[0] == RasConf.get().n0) {
+				update(sample, simTime);
 				fix();
 			}
 		} else {

@@ -179,9 +179,9 @@ public class AgentService {
 
 	public String bufStatus() {
 		String altBufStatus = "altBuf: " + altBuf.size() + "/"
-				+ ClusterConf.get().masterAltBufSize + "\n";
+				+ ClusterConf.get().agentAltBufSize + "\n";
 		String sampleBufStatus = "sampleBuf: " + sampleBuf.size() + "/"
-				+ ClusterConf.get().masterSampleBufSize + "\n";
+				+ ClusterConf.get().agentSampleBufSize + "\n";
 		return altBufStatus + sampleBufStatus;
 	}
 

@@ -5,6 +5,11 @@ if [ $# -ne 3 ]; then
     exit 1
 fi
 
+if [ -d $(pwd)/../../../../rase/log ]; then
+    echo "previous log exists, exit..."
+    exit 1
+fi
+
 altsConf=$(pwd)/$1
 if [ ! -f $altsConf ]; then
     altsConf=$1
@@ -68,4 +73,5 @@ for trialId in $(seq 0 $(($trialCount-1))); do
     echo $trialId", "$result
     pkill java
 
+    mv rase/log rase/log_$trialId
 done

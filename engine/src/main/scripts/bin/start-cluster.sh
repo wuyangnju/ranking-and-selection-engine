@@ -17,7 +17,7 @@ if [ ! -f $altsConf ]; then
     altsConf=$2
 fi
 
-if [ -d $raseLog/$altsConf]; then
+if [ -d $raseLog/$(basename $altsConf) ]; then
     echo "log exists, exit..."
     exit 1
 fi
@@ -114,7 +114,7 @@ function foreach_scp_back()
     done
 }
 
-set -x
+#set -x
 
 slaveTotalCount=0;
 while read agentHost slaveLocalCount
@@ -126,9 +126,9 @@ reverse_foreach_ssh pkill java
 foreach_ssh mkdir -p $raseRoot
 foreach_ssh rm -rf $raseRoot/*
 foreach_scp ${m2Dir}/${m2Dist} $raseRoot/
-foreach_ssh unzip $raseRoot/${m2Dist}
+foreach_ssh unzip "$raseRoot/${m2Dist} > /dev/null"
 for trialId in $(seq 0 $(($trialCount-1))); do
-    foreach_async_ssh ${raseRoot}/bin/run.sh
+    foreach_async_ssh ${raseRoot}/bin/run.sh > /dev/null
     sleep 5
 
     args="-F masterAltBufSize=$((${slaveTotalCount}*4))"
@@ -159,21 +159,21 @@ for trialId in $(seq 0 $(($trialCount-1))); do
         slaveIdOffset=$(($slaveIdOffset+$slaveLocalCount))
     done < agents.conf
 
-    set +x
+    #set +x
     result=$(curl http://$masterHost:$masterPort/rasResult 2>/dev/null)
     while [ $result -lt 0 ]; do
         sleep 1;
         result=$(curl http://$masterHost:$masterPort/rasResult 2>/dev/null)
     done
     echo $trialId", "$result
-    set -x
+    #set -x
 
     reverse_foreach_ssh pkill java
 
-    mkdir -p $raseLog/$altsConf/$trialId/
-    foreach_scp_back $raseRoot/log/slave* $raseLog/$altsConf/$trialId/
-    mv $raseRoot/log/master* $raseLog/$altsConf/$trialId/
-    mv $raseRoot/log/app.log $raseLog/$altsConf/$trialId/
+    mkdir -p $raseLog/$(basename $altsConf)/$trialId/
+    foreach_scp_back $raseRoot/log/slave* $raseLog/$(basename $altsConf)/$trialId/
+    mv $raseRoot/log/master* $raseLog/$(basename $altsConf)/$trialId/
+    mv $raseRoot/log/app.log $raseLog/$(basename $altsConf)/$trialId/
 done
 
 rm -rf agents.conf

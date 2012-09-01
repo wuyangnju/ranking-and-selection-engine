@@ -17,6 +17,11 @@ if [ ! -f $altsConf ]; then
     altsConf=$2
 fi
 
+if [ -d $raseLog/$altsConf]; then
+    echo "log exists, exit..."
+    exit 1
+fi
+
 min=true
 alpha=0.05
 delta=1
@@ -96,6 +101,19 @@ function foreach_scp()
     done
 }
 
+function foreach_scp_back()
+{
+    for i in $(seq 1 9)
+    do
+        scp felab-$i:$1 $2
+        if [ $? -eq 0 ]; then
+            echo "scp felab-$i:$1 $2 done."
+        else
+            echo "scp felab-$i:$1 $2 fail."
+        fi
+    done
+}
+
 set -x
 
 slaveTotalCount=0;
@@ -140,6 +158,7 @@ for trialId in $(seq 0 $(($trialCount-1))); do
         curl -d ${args} http://$agentHost:$masterPort/activateAgent
         slaveIdOffset=$(($slaveIdOffset+$slaveLocalCount))
     done < agents.conf
+
     set +x
     result=$(curl http://$masterHost:$masterPort/rasResult 2>/dev/null)
     while [ $result -lt 0 ]; do
@@ -148,7 +167,13 @@ for trialId in $(seq 0 $(($trialCount-1))); do
     done
     echo $trialId", "$result
     set -x
+
     reverse_foreach_ssh pkill java
+
+    mkdir -p $raseLog/$altsConf/$trialId/
+    foreach_scp_back $raseRoot/log/slave* $raseLog/$altsConf/$trialId/
+    mv $raseRoot/log/master* $raseLog/$altsConf/$trialId/
+    mv $raseRoot/log/app.log $raseLog/$altsConf/$trialId/
 done
 
 rm -rf agents.conf

@@ -102,11 +102,11 @@ function foreach_scp()
     done
 }
 
-function foreach_scp_back()
+function collect_log()
 {
-    for i in $(seq 1 9)
+    for i in $(seq 2 9)
     do
-        scp felab-$i:$1 $2
+        scp -r felab-$i:$1 $2
         if [ $? -eq 0 ]; then
             echo "scp felab-$i:$1 $2 done."
         else
@@ -172,9 +172,10 @@ for trialId in $(seq 0 $(($trialCount-1))); do
     reverse_foreach_ssh pkill java
 
     mkdir -p $raseLog/$(basename $altsConf)/$trialId/
-    foreach_scp_back $raseRoot/log/slave* $raseLog/$(basename $altsConf)/$trialId/
-    mv $raseRoot/log/master* $raseLog/$(basename $altsConf)/$trialId/
-    mv $raseRoot/log/app.log $raseLog/$(basename $altsConf)/$trialId/
+    collect_log $raseRoot/log $raseLog/$(basename $altsConf)/$trialId/
+    mv $raseLog/$(basename $altsConf)/$trialId/log/* $raseLog/$(basename $altsConf)/$trialId/
+    rmdir $raseLog/$(basename $altsConf)/$trialId/log
+    mv $raseRoot/log/* $raseLog/$(basename $altsConf)/$trialId/
 done
 
 rm -rf agents.conf

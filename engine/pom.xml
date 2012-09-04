@@ -5,14 +5,14 @@
 	<groupId>hk.ust.felab</groupId>
 	<artifactId>rase</artifactId>
 	<packaging>war</packaging>
-	<version>3.1.2</version>
+	<version>3.2.0</version>
 
 	<name>rase</name>
 	<url>http://rase.wuyangnju.com</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<assemblyDirectory>${project.basedir}${file.separator}src${file.separator}main${file.separator}assembly</assemblyDirectory>
+		<assemblyDirectory>${project.basedir}/src/main/assembly</assemblyDirectory>
 		<jettyVersion>8.0.4.v20111024</jettyVersion>
 		<springVersion>3.1.0.RELEASE</springVersion>
 	</properties>
@@ -39,6 +39,13 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<packagingExcludes>WEB-INF/web.xml</packagingExcludes>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 				<version>2.2</version>
@@ -59,6 +66,11 @@
 						<goals>
 							<goal>jar</goal>
 						</goals>
+						<configuration>
+							<excludes>
+								<exclude>log4j.properties</exclude>
+							</excludes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -68,7 +80,7 @@
 				<version>2.2.2</version>
 				<configuration>
 					<descriptors>
-						<descriptor>${assemblyDirectory}${file.separator}bin.xml</descriptor>
+						<descriptor>${assemblyDirectory}/bin.xml</descriptor>
 					</descriptors>
 				</configuration>
 				<executions>
@@ -81,12 +93,17 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>${jettyVersion}</version>
+			</plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>wagon-maven-plugin</artifactId>
 				<version>1.0-beta-4</version>
 				<configuration>
 					<fromDir>
-						${project.basedir}${file.separator}src${file.separator}main${file.separator}scripts
+						${project.basedir}/src/main/op-scripts
 					</fromDir>
 					<serverId>ssh_143.89.20.47</serverId>
 					<url>scp://ielm@143.89.20.47</url>
@@ -100,11 +117,6 @@
 						<phase>deploy</phase>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.mortbay.jetty</groupId>
-				<artifactId>jetty-maven-plugin</artifactId>
-				<version>${jettyVersion}</version>
 			</plugin>
 		</plugins>
 

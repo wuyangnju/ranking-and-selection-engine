@@ -1,7 +1,7 @@
 package hk.ust.felab.rase.slave;
 
 import hk.ust.felab.rase.agent.AgentService;
-import hk.ust.felab.rase.conf.ClusterConf;
+import hk.ust.felab.rase.conf.RasConf;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -36,7 +36,7 @@ public class SlaveThread implements Runnable {
 		this.sampleGenerator = (SampleGenerator) Class
 				.forName(
 						getClass().getPackage().getName() + ".impl."
-								+ ClusterConf.get().slaveSampleGenerator)
+								+ RasConf.get().sampleGenerator)
 				.getConstructor(Integer.class).newInstance(subStreamId);
 		this.agentService = agentService;
 
@@ -70,7 +70,7 @@ public class SlaveThread implements Runnable {
 				perf1.trace(System.currentTimeMillis() + "\n");
 			}
 			sampleCount++;
-			if (sampleCount % ClusterConf.get().slaveSampleCountStep == 0) {
+			if (sampleCount % RasConf.get().sampleCountStep == 0) {
 				perf2.trace(System.currentTimeMillis() + "," + sampleCount
 						+ "\n");
 			}

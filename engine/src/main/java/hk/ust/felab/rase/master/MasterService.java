@@ -361,7 +361,7 @@ public class MasterService {
 		elimation2Log.trace(elimationCount + "\n");
 		bufLog.trace(altBuf.size() + "," + sampleBuf.size() + "\n");
 		sampleCount++;
-		if (sampleCount % ClusterConf.get().slaveSampleCountStep == 0) {
+		if (sampleCount % RasConf.get().sampleCountStep == 0) {
 			perf2.trace(System.currentTimeMillis() + "," + sampleCount + ","
 					+ survivalCount + "," + secondStageCount + "\n");
 		}

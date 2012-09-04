@@ -30,8 +30,8 @@ public class AgentController {
 			@RequestParam int agentSampleBufSize,
 			@RequestParam int slaveIdOffset, @RequestParam int slaveLocalCount,
 			@RequestParam int slaveTotalCount,
-			@RequestParam String slaveSampleGenerator,
-			@RequestParam int slaveSampleCountStep) {
+			@RequestParam String sampleGenerator,
+			@RequestParam int sampleCountStep) {
 
 		RasConf.get().trialId = trialId;
 
@@ -46,8 +46,8 @@ public class AgentController {
 		ClusterConf.get().slaveIdOffset = slaveIdOffset;
 		ClusterConf.get().slaveLocalCount = slaveLocalCount;
 		ClusterConf.get().slaveTotalCount = slaveTotalCount;
-		ClusterConf.get().slaveSampleGenerator = slaveSampleGenerator;
-		ClusterConf.get().slaveSampleCountStep = slaveSampleCountStep;
+		RasConf.get().sampleGenerator = sampleGenerator;
+		RasConf.get().sampleCountStep = sampleCountStep;
 
 		try {
 			agentService.activate();

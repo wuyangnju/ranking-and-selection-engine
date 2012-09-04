@@ -35,7 +35,5 @@ public class ClusterConf {
 	public int slaveIdOffset;
 	public int slaveLocalCount;
 	public int slaveTotalCount;
-	public String slaveSampleGenerator;
-	public int slaveSampleCountStep;
 
 }

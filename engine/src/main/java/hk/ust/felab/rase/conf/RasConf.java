@@ -11,6 +11,10 @@ public class RasConf {
 		return instance;
 	}
 
+	public String sampleGenerator;
+
+	public int sampleCountStep;
+
 	/**
 	 * number of alternatives(alts)
 	 */

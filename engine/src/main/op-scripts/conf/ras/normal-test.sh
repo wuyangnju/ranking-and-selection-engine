@@ -1,0 +1,9 @@
+#sampleGenerator=DelayedNormal
+sampleGenerator=Normal
+sampleCountStep=1
+min=true
+alpha=0.05
+delta=1
+n0=15
+fix=true
+trialCount=1

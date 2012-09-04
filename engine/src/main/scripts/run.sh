@@ -5,7 +5,7 @@ PORT=5567
 CONTEXT_PATH=/
 LOG_FILE=app.log
 
-CLASSPATH="$(dirname $0)/../classes"
+CLASSPATH="$(dirname $0)/../conf"
 for i in $(dirname $0)/../lib/*
 do
     CLASSPATH="${CLASSPATH}:${i}"

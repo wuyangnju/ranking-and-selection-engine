@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ $# -ne 3 ]; then
-    echo "usage: $0 altsConf slaveCount trialCount"
+if [ $# -ne 2 ]; then
+    echo "usage: $0 rasConf altsConf"
     exit 1
 fi
 
@@ -10,17 +10,17 @@ if [ -d $(pwd)/../../../../rase/log ]; then
     exit 1
 fi
 
-altsConf=$(pwd)/$1
-if [ ! -f $altsConf ]; then
-    altsConf=$1
+rasConf=$(pwd)/$1
+if [ ! -f $rasConf ]; then
+    rasConf=$1
 fi
 
-min=true
-alpha=0.05
-delta=1
-n0=10
-fix=true
-trialCount=$3;
+. $rasConf
+
+altsConf=$(pwd)/$2
+if [ ! -f $altsConf ]; then
+    altsConf=$2
+fi
 
 masterHost=localhost
 masterPort=5567
@@ -31,10 +31,8 @@ agentAltBufSize=128
 agentSampleBufSize=1024
 
 slaveIdOffset=0
-slaveLocalCount=$2
-slaveTotalCount=$2
-slaveSampleGenerator=Normal
-slaveSampleCountStep=1
+slaveLocalCount=4
+slaveTotalCount=4
 
 cd $(pwd)/../../../..
 
@@ -61,8 +59,8 @@ for trialId in $(seq 0 $(($trialCount-1))); do
     args=${args}"&slaveIdOffset=$slaveIdOffset"
     args=${args}"&slaveLocalCount=$slaveLocalCount"
     args=${args}"&slaveTotalCount=$slaveTotalCount"
-    args=${args}"&slaveSampleGenerator=$slaveSampleGenerator"
-    args=${args}"&slaveSampleCountStep=$slaveSampleCountStep"
+    args=${args}"&sampleGenerator=$sampleGenerator"
+    args=${args}"&sampleCountStep=$sampleCountStep"
     curl -d ${args} http://$masterHost:$masterPort/activateAgent
 
     result=$(curl http://$masterHost:$masterPort/rasResult)

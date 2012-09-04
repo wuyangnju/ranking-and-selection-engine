@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ $# -ne 3 ]; then
-    echo "usage: $0 version altsConf trialCount"
+if [ $# -ne 4 ]; then
+    echo "usage: $0 version rasConf altsConf log4jConf"
     exit 1
 fi
 
@@ -9,38 +9,38 @@ version=$1
 m2Dir=/home/ielm/m2/hk/ust/felab/rase/$version
 m2Dist=rase-$version-bin.zip
 
+rasConf=$(pwd)/$2
+if [ ! -f $rasConf ]; then
+    rasConf=$2
+fi
+
+. $rasConf
+
+altsConf=$(pwd)/$3
+if [ ! -f $altsConf ]; then
+    altsConf=$3
+fi
+
+log4jConf=$(pwd)/$4
+if [ ! -f $log4jConf ]; then
+    log4jConf=$4
+fi
+
 raseRoot=/home/ielm/rase
 raseLog=/home/ielm/rase_log
-
-altsConf=$(pwd)/$2
-if [ ! -f $altsConf ]; then
-    altsConf=$2
-fi
 
 if [ -d $raseLog/$(basename $altsConf) ]; then
     echo "log exists, exit..."
     exit 1
 fi
 
-min=true
-alpha=0.05
-delta=1
-n0=20
-fix=true
-trialCount=$3;
-
 masterHost=192.168.1.1
 masterPort=5567
 
-slaveIdOffset=0
-#slaveSampleGenerator=DelayedNormal
-slaveSampleGenerator=Normal
-slaveSampleCountStep=1
-
 rm -rf agents.conf
 cat <<- AGENTS > agents.conf
-felab-1 40
-felab-2 40
+felab-1 44
+felab-2 44
 felab-3 4
 felab-4 4
 felab-5 4
@@ -128,6 +128,7 @@ foreach_ssh mkdir -p $raseRoot
 foreach_ssh rm -rf $raseRoot/*
 foreach_scp ${m2Dir}/${m2Dist} $raseRoot/
 foreach_ssh unzip "$raseRoot/${m2Dist} > /dev/null"
+foreach_scp $log4jConf $raseRoot/conf/
 for trialId in $(seq 0 $(($trialCount-1))); do
     foreach_async_ssh ${raseRoot}/bin/run.sh > /dev/null
     sleep 5
@@ -154,8 +155,8 @@ for trialId in $(seq 0 $(($trialCount-1))); do
         args=${args}"&slaveIdOffset=$slaveIdOffset"
         args=${args}"&slaveLocalCount=$slaveLocalCount"
         args=${args}"&slaveTotalCount=$slaveTotalCount"
-        args=${args}"&slaveSampleGenerator=$slaveSampleGenerator"
-        args=${args}"&slaveSampleCountStep=$slaveSampleCountStep"
+        args=${args}"&sampleGenerator=$sampleGenerator"
+        args=${args}"&sampleCountStep=$sampleCountStep"
         curl -d ${args} http://$agentHost:$masterPort/activateAgent
         slaveIdOffset=$(($slaveIdOffset+$slaveLocalCount))
     done < agents.conf

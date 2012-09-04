@@ -128,7 +128,7 @@ foreach_ssh mkdir -p $raseRoot
 foreach_ssh rm -rf $raseRoot/*
 foreach_scp ${m2Dir}/${m2Dist} $raseRoot/
 foreach_ssh unzip "$raseRoot/${m2Dist} > /dev/null"
-foreach_scp $log4jConf $raseRoot/conf/
+foreach_scp $log4jConf $raseRoot/conf/log4j.properties
 for trialId in $(seq 0 $(($trialCount-1))); do
     foreach_async_ssh ${raseRoot}/bin/run.sh > /dev/null
     sleep 5

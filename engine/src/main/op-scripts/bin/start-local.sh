@@ -5,11 +5,6 @@ if [ $# -ne 2 ]; then
     exit 1
 fi
 
-if [ -d $(pwd)/../../../../rase/log ]; then
-    echo "previous log exists, exit..."
-    exit 1
-fi
-
 rasConf=$(pwd)/$1
 if [ ! -f $rasConf ]; then
     rasConf=$1
@@ -34,11 +29,13 @@ slaveIdOffset=0
 slaveLocalCount=4
 slaveTotalCount=4
 
-cd $(pwd)/../../../..
+cd $(dirname $0)/../../../..
 
 pkill java
 for trialId in $(seq 0 $(($trialCount-1))); do
-    mvn clean -D jetty.port=$masterPort jetty:run 2>&1 &
+    mvn clean \
+-D log4j.configuration="$(dirname $0)/../conf/log4j/log4j-full.properties" \
+-D jetty.port=$masterPort jetty:run 2>&1 &
     sleep 10
 
     args="-F masterAltBufSize=$masterAltBufSize"

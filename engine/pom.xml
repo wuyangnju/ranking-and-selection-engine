@@ -5,7 +5,7 @@
 	<groupId>hk.ust.felab</groupId>
 	<artifactId>rase</artifactId>
 	<packaging>war</packaging>
-	<version>3.2.0</version>
+	<version>3.2.1</version>
 
 	<name>rase</name>
 	<url>http://rase.wuyangnju.com</url>
@@ -66,11 +66,6 @@
 						<goals>
 							<goal>jar</goal>
 						</goals>
-						<configuration>
-							<excludes>
-								<exclude>log4j.properties</exclude>
-							</excludes>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>

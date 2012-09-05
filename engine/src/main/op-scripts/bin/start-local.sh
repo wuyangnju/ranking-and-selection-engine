@@ -5,6 +5,11 @@ if [ $# -ne 2 ]; then
     exit 1
 fi
 
+cygwin=false
+case "$(uname)" in
+    CYGWIN*) cygwin=true;;
+esac
+
 rasConf=$(pwd)/$1
 if [ ! -f $rasConf ]; then
     rasConf=$1
@@ -31,11 +36,16 @@ slaveTotalCount=4
 
 cd $(dirname $0)/../../../..
 
+logProp="$(pwd)/src/main/op-scripts/conf/log4j/log4j-full.properties"
+if $cygwin; then
+    logProp=/$(cygpath -w $logProp)
+fi
+logDir="target/logs"
+
 pkill java
 for trialId in $(seq 0 $(($trialCount-1))); do
-    mvn clean \
--D log4j.configuration="$(dirname $0)/../conf/log4j/log4j-full.properties" \
--D jetty.port=$masterPort jetty:run 2>&1 &
+    mvn clean -D log4j.configuration="file://"$logProp -D log.dir=$logDir \
+        -D jetty.port=$masterPort jetty:run 2>&1 &
     sleep 10
 
     args="-F masterAltBufSize=$masterAltBufSize"
@@ -60,13 +70,14 @@ for trialId in $(seq 0 $(($trialCount-1))); do
     args=${args}"&sampleCountStep=$sampleCountStep"
     curl -d ${args} http://$masterHost:$masterPort/activateAgent
 
-    result=$(curl http://$masterHost:$masterPort/rasResult)
+    result=$(curl http://$masterHost:$masterPort/rasResult 2>/dev/null)
     while [ $result -lt 0 ]; do
         sleep 1;
-        result=$(curl http://$masterHost:$masterPort/rasResult)
+        result=$(curl http://$masterHost:$masterPort/rasResult 2>/dev/null)
     done
     echo $trialId", "$result
     pkill java
 
-    mv rase/log rase/log_$trialId
+    mkdir -p ../logs
+    mv $logDir ../logs/logs_$trialId
 done

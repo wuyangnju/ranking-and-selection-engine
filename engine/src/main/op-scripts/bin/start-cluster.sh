@@ -5,6 +5,10 @@ if [ $# -ne 4 ]; then
     exit 1
 fi
 
+raseRoot=/home/ielm/rase
+logDir=$raseRoot/logs
+raseLog=/home/ielm/rase_log
+
 version=$1
 m2Dir=/home/ielm/m2/hk/ust/felab/rase/$version
 m2Dist=rase-$version-bin.zip
@@ -25,9 +29,6 @@ log4jConf=$(pwd)/$4
 if [ ! -f $log4jConf ]; then
     log4jConf=$4
 fi
-
-raseRoot=/home/ielm/rase
-raseLog=/home/ielm/rase_log
 
 if [ -d $raseLog/$(basename $altsConf) ]; then
     echo "log exists, exit..."
@@ -131,7 +132,7 @@ foreach_ssh unzip "$raseRoot/${m2Dist} > /dev/null"
 foreach_ssh mkdir -p $raseRoot/conf
 foreach_scp $log4jConf $raseRoot/conf/log4j.properties
 for trialId in $(seq 0 $(($trialCount-1))); do
-    foreach_async_ssh ${raseRoot}/bin/run.sh > /dev/null
+    foreach_async_ssh ${raseRoot}/bin/run.sh -D log.dir=$logDir > /dev/null
     sleep 5
 
     args="-F masterAltBufSize=$((${slaveTotalCount}*32))"
@@ -174,10 +175,10 @@ for trialId in $(seq 0 $(($trialCount-1))); do
     reverse_foreach_ssh pkill java
 
     mkdir -p $raseLog/$(basename $altsConf)/$trialId/
-    collect_log $raseRoot/log $raseLog/$(basename $altsConf)/$trialId/
-    mv $raseLog/$(basename $altsConf)/$trialId/log/* $raseLog/$(basename $altsConf)/$trialId/
-    rmdir $raseLog/$(basename $altsConf)/$trialId/log
-    mv $raseRoot/log/* $raseLog/$(basename $altsConf)/$trialId/
+    collect_log $logDir $raseLog/$(basename $altsConf)/$trialId/
+    mv $raseLog/$(basename $altsConf)/$trialId/logs/* $raseLog/$(basename $altsConf)/$trialId/
+    rmdir $raseLog/$(basename $altsConf)/$trialId/logs
+    mv $raseRoot/logs/* $raseLog/$(basename $altsConf)/$trialId/
 done
 
 rm -rf agents.conf

@@ -1,6 +1,7 @@
 package hk.ust.felab.rase.slave;
 
 import hk.ust.felab.rase.agent.AgentService;
+import hk.ust.felab.rase.conf.ClusterConf;
 import hk.ust.felab.rase.conf.RasConf;
 
 import java.io.IOException;
@@ -42,11 +43,13 @@ public class SlaveThread implements Runnable {
 
 		perf1 = Logger.getLogger("slave.perf1." + slaveId);
 		perf1.addAppender(new FileAppender(new PatternLayout("%m"),
-				"rase/log/slave_perf1_" + slaveId + ".csv", false, true, 16192));
+				ClusterConf.LOG_DIR + "/slave_perf1_" + slaveId + ".csv",
+				false, true, 16192));
 
 		perf2 = Logger.getLogger("slave.perf2." + slaveId);
 		perf2.addAppender(new FileAppender(new PatternLayout("%m"),
-				"rase/log/slave_perf2_" + slaveId + ".csv", false, true, 16192));
+				ClusterConf.LOG_DIR + "/slave_perf2_" + slaveId + ".csv",
+				false, true, 16192));
 	}
 
 	@Override

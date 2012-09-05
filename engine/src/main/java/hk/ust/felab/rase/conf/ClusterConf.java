@@ -11,7 +11,7 @@ public class ClusterConf {
 	public static final String README = "readme";
 
 	public static final String LOG_DIR = System.getProperty("log.dir",
-			"rase/log");
+			"rase/logs");
 
 	private static ClusterConf instance = new ClusterConf();
 

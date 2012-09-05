@@ -132,7 +132,7 @@ foreach_ssh unzip "$raseRoot/${m2Dist} > /dev/null"
 foreach_ssh mkdir -p $raseRoot/conf
 foreach_scp $log4jConf $raseRoot/conf/log4j.properties
 for trialId in $(seq 0 $(($trialCount-1))); do
-    foreach_async_ssh ${raseRoot}/bin/run.sh -D log.dir=$logDir > /dev/null
+    foreach_async_ssh ${raseRoot}/bin/run.sh > /dev/null
     sleep 5
 
     args="-F masterAltBufSize=$((${slaveTotalCount}*32))"

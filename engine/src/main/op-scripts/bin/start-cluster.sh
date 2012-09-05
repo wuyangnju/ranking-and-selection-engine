@@ -53,67 +53,41 @@ AGENTS
 
 function foreach_ssh()
 {
-    for i in $(seq 1 9)
+    echo
+    for i in $(seq $1)
     do
-        ssh felab-$i $*
-        if [ $? -eq 0 ]; then
-            echo "ssh felab-$i $* done."
-        else
-            echo "ssh felab-$i $* fail."
+        ssh felab-$i $2
+        if [ $? -ne 0 ]; then
+            echo "ssh felab-$i $2 fail."
         fi
     done
-}
-
-function reverse_foreach_ssh()
-{
-    for i in $(seq 9 -1 1)
-    do
-        ssh felab-$i $*
-        if [ $? -eq 0 ]; then
-            echo "ssh felab-$i $* done."
-        else
-            echo "ssh felab-$i $* fail."
-        fi
-    done
-}
-
-function foreach_async_ssh()
-{
-    for i in $(seq 1 9)
-    do
-        ssh felab-$i $* &
-        if [ $? -eq 0 ]; then
-            echo "ssh felab-$i $* done."
-        else
-            echo "ssh felab-$i $* fail."
-        fi
-    done
+    echo "ssh felab-x $2 done."
 }
 
 function foreach_scp()
 {
-    for i in $(seq 1 9)
+    echo
+    for i in $(seq $1)
     do
-        scp $1 felab-$i:$2
-        if [ $? -eq 0 ]; then
-            echo "scp $1 felab-$i:$2 done."
-        else
-            echo "scp $1 felab-$i:$2 fail."
+        scp -rq $2 felab-$i:$3
+        if [ $? -ne 0 ]; then
+            echo "scp $2 felab-$i:$3 fail."
         fi
     done
+    echo "scp $2 felab-x:$3 done."
 }
 
-function collect_log()
+function foreach_scp_back()
 {
-    for i in $(seq 2 9)
+    echo
+    for i in $(seq $1)
     do
-        scp -r felab-$i:$1 $2
-        if [ $? -eq 0 ]; then
-            echo "scp felab-$i:$1 $2 done."
-        else
-            echo "scp felab-$i:$1 $2 fail."
+        scp -rq felab-$i:$2 $3
+        if [ $? -ne 0 ]; then
+            echo "scp felab-$i:$2 $3 fail."
         fi
     done
+    echo "scp felab-x:$2 $3 done."
 }
 
 #set -x
@@ -124,15 +98,12 @@ do
     slaveTotalCount=$(($slaveTotalCount+$slaveLocalCount))
 done < agents.conf
 
-reverse_foreach_ssh pkill java
-foreach_ssh mkdir -p $raseRoot
-foreach_ssh rm -rf $raseRoot/*
-foreach_scp ${m2Dir}/${m2Dist} $raseRoot/
-foreach_ssh unzip "$raseRoot/${m2Dist} > /dev/null"
-foreach_ssh mkdir -p $raseRoot/conf
-foreach_scp $log4jConf $raseRoot/conf/log4j.properties
+foreach_ssh "9 -1 1" "pkill java ; rm -rf $raseRoot && mkdir -p $raseRoot/conf"
+foreach_scp "1 9" "${m2Dir}/${m2Dist}" "$raseRoot/"
+foreach_scp "1 9" "$log4jConf" "$raseRoot/conf/log4j.properties"
+foreach_ssh "1 9" "unzip $raseRoot/${m2Dist} > /dev/null"
 for trialId in $(seq 0 $(($trialCount-1))); do
-    foreach_async_ssh ${raseRoot}/bin/run.sh > /dev/null
+    foreach_ssh "1 9" "${raseRoot}/bin/run.sh > /dev/null"
     sleep 5
 
     args="-F masterAltBufSize=$((${slaveTotalCount}*32))"
@@ -143,12 +114,12 @@ for trialId in $(seq 0 $(($trialCount-1))); do
     args=${args}" -F n0=$n0"
     args=${args}" -F fix=$fix"
     args=${args}" -F altsConf=@$altsConf"
+    echo
     curl $args http://$masterHost:$masterPort/activateMaster
 
     slaveIdOffset=0;
     while read agentHost slaveLocalCount
     do
-        echo $agentHost
         args="trialId=$trialId"
         args=${args}"&masterHost=$masterHost"
         args=${args}"&masterPort=$masterPort"
@@ -159,6 +130,7 @@ for trialId in $(seq 0 $(($trialCount-1))); do
         args=${args}"&slaveTotalCount=$slaveTotalCount"
         args=${args}"&sampleGenerator=$sampleGenerator"
         args=${args}"&sampleCountStep=$sampleCountStep"
+        echo -ne "\n$agentHost - "
         curl -d ${args} http://$agentHost:$masterPort/activateAgent
         slaveIdOffset=$(($slaveIdOffset+$slaveLocalCount))
     done < agents.conf
@@ -169,16 +141,15 @@ for trialId in $(seq 0 $(($trialCount-1))); do
         sleep 1;
         result=$(curl http://$masterHost:$masterPort/rasResult 2>/dev/null)
     done
-    echo $trialId", "$result
+    echo -e "\n$trialId, $result"
     #set -x
 
-    reverse_foreach_ssh pkill java
+    foreach_ssh "9 -1 1" "pkill java"
 
     mkdir -p $raseLog/$(basename $altsConf)/$trialId/
-    collect_log $logDir $raseLog/$(basename $altsConf)/$trialId/
+    foreach_scp_back "9 -1 1" "$logDir" "$raseLog/$(basename $altsConf)/$trialId/"
     mv $raseLog/$(basename $altsConf)/$trialId/logs/* $raseLog/$(basename $altsConf)/$trialId/
     rmdir $raseLog/$(basename $altsConf)/$trialId/logs
-    mv $raseRoot/logs/* $raseLog/$(basename $altsConf)/$trialId/
 done
 
 rm -rf agents.conf

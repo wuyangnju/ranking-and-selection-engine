@@ -30,7 +30,7 @@ public class MasterController {
 	@Resource(name = GsonUtil.GSON_FLOAT)
 	private Gson gsonFloat;
 
-	@Resource(name = GsonUtil.GSON_DES)
+	@Resource(name = GsonUtil.GSON_BRIEF)
 	private Gson gsonDes;
 
 	@Resource

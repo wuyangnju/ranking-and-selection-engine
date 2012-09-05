@@ -10,8 +10,14 @@ import com.google.gson.GsonBuilder;
 @Component
 @Configuration
 public class GsonUtil {
+	public static final String GSON_BRIEF = "gsonBrief";
 	public static final String GSON_DES = "gsonDes";
 	public static final String GSON_FLOAT = "gsonFloat";
+
+	@Bean(name = GSON_BRIEF)
+	public static Gson gsonBrief() {
+		return new GsonBuilder().serializeNulls().create();
+	}
 
 	@Bean(name = GSON_DES)
 	public static Gson gsonDes() {

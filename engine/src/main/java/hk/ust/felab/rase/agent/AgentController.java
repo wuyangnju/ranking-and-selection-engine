@@ -16,7 +16,7 @@ import com.google.gson.Gson;
 
 @Controller
 public class AgentController {
-	@Resource(name = GsonUtil.GSON_DES)
+	@Resource(name = GsonUtil.GSON_BRIEF)
 	private Gson gson;
 
 	@Resource

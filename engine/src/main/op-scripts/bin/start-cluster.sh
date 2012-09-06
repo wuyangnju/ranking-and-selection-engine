@@ -7,7 +7,8 @@ fi
 
 raseRoot=/home/ielm/rase
 logDir=$raseRoot/logs
-raseLog=/home/ielm/rase_log
+
+allLogDir=/home/ielm/rase_log
 
 version=$1
 m2Dir=/home/ielm/m2/hk/ust/felab/rase/$version
@@ -28,11 +29,6 @@ fi
 log4jConf=$(pwd)/$4
 if [ ! -f $log4jConf ]; then
     log4jConf=$4
-fi
-
-if [ -d $raseLog/$(basename $altsConf) ]; then
-    echo "log exists, exit..."
-    exit 1
 fi
 
 masterHost=192.168.1.1
@@ -146,10 +142,12 @@ for trialId in $(seq 0 $(($trialCount-1))); do
 
     foreach_ssh "9 -1 1" "pkill java"
 
-    mkdir -p $raseLog/$(basename $altsConf)/$trialId/
-    foreach_scp_back "9 -1 1" "$logDir" "$raseLog/$(basename $altsConf)/$trialId/"
-    mv $raseLog/$(basename $altsConf)/$trialId/logs/* $raseLog/$(basename $altsConf)/$trialId/
-    rmdir $raseLog/$(basename $altsConf)/$trialId/logs
+    trialLogDir=$allLogDir/$(basename $altsConf)_$(basename $rasConf)_$trialId
+
+    mkdir -p $trialLogDir
+    foreach_scp_back "9 -1 1" "$logDir" "$trialLogDir"
+    mv $trialLogDir/logs/* $trialLogDir
+    rmdir $trialLogDir/logs 
 done
 
 rm -rf agents.conf

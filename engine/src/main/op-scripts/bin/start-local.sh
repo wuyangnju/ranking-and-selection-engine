@@ -79,5 +79,5 @@ for trialId in $(seq 0 $(($trialCount-1))); do
     pkill java
 
     mkdir -p ../logs
-    mv $logDir ../logs/logs_$trialId
+    mv $logDir ../logs/$(basename ${altsConf})_$(basename ${rasConf})_$trialId
 done

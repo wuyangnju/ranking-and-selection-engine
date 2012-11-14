@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>hk.ust.felab</groupId>
-	<artifactId>rase</artifactId>
+	<artifactId>rase-legacy1</artifactId>
 	<packaging>war</packaging>
 	<version>3.2.4</version>
 
-	<name>rase</name>
+	<name>rase-legacy1</name>
 	<url>http://rase.wuyangnju.com</url>
 
 	<properties>
@@ -18,7 +18,7 @@
 	</properties>
 
 	<build>
-		<finalName>rase</finalName>
+		<finalName>rase-legacy1</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

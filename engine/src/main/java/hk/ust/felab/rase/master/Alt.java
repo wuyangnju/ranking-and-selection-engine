@@ -4,15 +4,33 @@ import hk.ust.felab.rase.conf.RasConf;
 import hk.ust.felab.rase.util.GsonUtil;
 import hk.ust.felab.rase.util.Indexed;
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Alt implements Indexed {
+	public static class Entry {
+		double sample;
+		long simTime;
+
+		Entry(double sample, long simTime) {
+			this.sample = sample;
+			this.simTime = simTime;
+		}
+
+		@Override
+		public String toString() {
+			return sample + "," + simTime;
+		}
+	}
+
 	private int id;
 	private AtomicBoolean surviving = new AtomicBoolean(true);
+	private AtomicInteger nextSampleId = new AtomicInteger(0);
 	private double[] args;
 	private double[] data;
 	private int[] indexInPriorityQueue = new int[] { -1, -1, -1 };
-
+	public ArrayList<Entry> observations = new ArrayList<Entry>();
 	public static double minThetaOverSqrtY = Double.MAX_VALUE;
 
 	/**
@@ -68,9 +86,19 @@ public class Alt implements Indexed {
 		}
 	}
 
-	public long addSample(double sample, long simTime) {
+	public long addSample(int sampleId, double sample, long simTime) {
 		data[0]++;
 		data[1] += sample;
+
+		while (sampleId > observations.size()) {
+			observations.add(null);
+		}
+		if (sampleId < observations.size()) {
+			observations.set(sampleId, new Entry(sample, simTime));
+		} else if (sampleId == observations.size()) {
+			observations.add(new Entry(sample, simTime));
+		}
+
 		if (RasConf.get().fix) {
 			if (data[0] < RasConf.get().n0) {
 				update(sample, simTime);
@@ -84,13 +112,15 @@ public class Alt implements Indexed {
 		return (long) data[0];
 	}
 
+	// modified
 	/**
-	 * @return {id, args[0],args[1]...}
+	 * @return {alt_id, args[0],args[1]...sample_id}
 	 */
 	public double[] argSnapshot() {
-		double[] snapshot = new double[args.length + 1];
+		double[] snapshot = new double[args.length + 2];
 		snapshot[0] = id;
 		System.arraycopy(args, 0, snapshot, 1, args.length);
+		snapshot[snapshot.length - 1] = nextSampleId();
 		return snapshot;
 	}
 
@@ -136,6 +166,10 @@ public class Alt implements Indexed {
 
 	public boolean lessThan(Alt o) {
 		return key3() < o.key2() + RasConf.get().b;
+	}
+
+	private int nextSampleId() {
+		return nextSampleId.getAndIncrement();
 	}
 
 	@Override

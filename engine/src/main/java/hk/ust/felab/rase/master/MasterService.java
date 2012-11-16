@@ -207,7 +207,7 @@ public class MasterService {
 		}
 	}
 
-	void processSample(int altId, double sample, long simTime) {
+	void processSample(int altId, int sampleId, double sample, long simTime) {
 		int[] sift = new int[] { 0, 0, 0 };
 		double k1, k2, k3;
 		Alt alt0 = alts[altId - 1], alt1;
@@ -219,7 +219,8 @@ public class MasterService {
 			k1 = alt0.key1();
 			k2 = alt0.key2();
 			k3 = alt0.key3();
-			alt0.addSample(sample, simTime);
+			alt0.addSample(sampleId, sample, simTime);
+
 			if (alt0.key1() < k1) {
 				sift[0] += alts1.siftUp(alt0);
 			} else {
@@ -236,12 +237,12 @@ public class MasterService {
 				sift[2] += alts3.siftDown(alt0);
 			}
 		} else if (alt0.num() == RasConf.get().n0) {
-			alt0.addSample(sample, simTime);
+			alt0.addSample(sampleId, sample, simTime);
 			sift[0] += alts1.myOffer(alt0);
 			sift[1] += alts2.myOffer(alt0);
 			sift[2] += alts3.myOffer(alt0);
 		} else if (alt0.num() < RasConf.get().n0) {
-			alt0.addSample(sample, simTime);
+			alt0.addSample(sampleId, sample, simTime);
 		}
 
 		if (alt0.num() == RasConf.get().n0) {
@@ -379,7 +380,8 @@ public class MasterService {
 							+ sample[2] + "\n");
 					elimationCount = 0;
 					perf1.trace(System.currentTimeMillis() + ",");
-					processSample((int) sample[0], sample[1], (long) sample[2]);
+					processSample((int) sample[0], (int) sample[3], sample[1],
+							(long) sample[2]);
 				} catch (InterruptedException e) {
 					log.warn(e, e);
 					continue;

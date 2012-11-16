@@ -65,7 +65,8 @@ public class SlaveThread implements Runnable {
 				sampleAndSimTime = sampleGenerator.generate(altSystem);
 				perf1.trace(System.currentTimeMillis() + ",");
 				agentService.putSample((int) altSystem[0], sampleAndSimTime[0],
-						sampleAndSimTime[1]);
+						sampleAndSimTime[1],
+						(int) altSystem[altSystem.length - 1]);
 			} catch (InterruptedException e) {
 				log.warn(e, e);
 				continue;

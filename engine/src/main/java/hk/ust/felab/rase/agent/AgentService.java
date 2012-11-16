@@ -126,9 +126,9 @@ public class AgentService {
 		}
 	}
 
-	public void putSample(int altId, double sample, double simTime)
+	public void putSample(int altId, double sample, double simTime, int sampleId)
 			throws InterruptedException {
-		sampleBuf.put(new double[] { altId, sample, simTime });
+		sampleBuf.put(new double[] { altId, sample, simTime, sampleId });
 	}
 
 	void pushSamples(double[][] samples) {

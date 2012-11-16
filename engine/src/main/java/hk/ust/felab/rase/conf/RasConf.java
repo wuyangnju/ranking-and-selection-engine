@@ -31,6 +31,11 @@ public class RasConf {
 	 * 1) * 1.0)));
 	 */
 	public double a;
+	
+	/**
+	 * The a in step 0
+	 */
+	public double aa;
 
 	/**
 	 * b = delta / 2.0;

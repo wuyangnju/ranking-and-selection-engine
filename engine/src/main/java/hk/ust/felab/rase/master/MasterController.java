@@ -54,7 +54,7 @@ public class MasterController {
 			@RequestParam int masterSampleBufSize, @RequestParam boolean min,
 			@RequestParam double alpha, @RequestParam double delta,
 			@RequestParam int n0, @RequestParam boolean fix,
-			@RequestParam MultipartFile altsConf) {
+			@RequestParam double aa, @RequestParam MultipartFile altsConf) {
 
 		ClusterConf.get().masterAltBufSize = masterAltBufSize;
 		ClusterConf.get().masterSampleBufSize = masterSampleBufSize;
@@ -63,6 +63,7 @@ public class MasterController {
 		RasConf.get().delta = delta;
 		RasConf.get().n0 = n0;
 		RasConf.get().fix = fix;
+		RasConf.get().aa = aa;
 
 		try {
 			ArrayList<double[]> altsArgs = new ArrayList<double[]>();

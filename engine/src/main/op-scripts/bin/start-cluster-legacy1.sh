@@ -109,6 +109,7 @@ for trialId in $(seq 0 $(($trialCount-1))); do
     args=${args}" -F delta=$delta"
     args=${args}" -F n0=$n0"
     args=${args}" -F fix=$fix"
+    args=${args}" -F aa=$aa"
     args=${args}" -F altsConf=@$altsConf"
     echo
     curl $args http://$masterHost:$masterPort/activateMaster

@@ -5,7 +5,7 @@
 	<groupId>hk.ust.felab</groupId>
 	<artifactId>rase</artifactId>
 	<packaging>war</packaging>
-	<version>3.2.4</version>
+	<version>3.2.5</version>
 
 	<name>rase</name>
 	<url>http://rase.wuyangnju.com</url>

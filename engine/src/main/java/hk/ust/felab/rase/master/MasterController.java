@@ -76,8 +76,7 @@ public class MasterController {
 			RasConf.get().k = altsArgs.size();
 			RasConf.get().a = (-1.0)
 					/ delta
-					* Math.log(2 - 2 * Math.pow((1 - alpha),
-							(1.0 / (RasConf.get().k - 1) * 1.0)));
+					* Math.log(2.0 * alpha / (RasConf.get().k - 1) * 1.0);
 			RasConf.get().b = delta / 2.0;
 			masterService.activate(altsArgs.toArray(new double[][] {}));
 		} catch (Exception e) {

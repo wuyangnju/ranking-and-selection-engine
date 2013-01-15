@@ -31,6 +31,8 @@ public class AgentService {
 
 	private transient final Logger log = Logger.getLogger(getClass());
 
+    private transient final Logger bufLog = Logger.getLogger("agent.buf");
+
 	@Resource(name = GsonUtil.GSON_FLOAT)
 	private Gson gson;
 
@@ -129,6 +131,7 @@ public class AgentService {
 	public void putSample(int altId, double sample, double simTime)
 			throws InterruptedException {
 		sampleBuf.put(new double[] { altId, sample, simTime });
+        bufLog.trace(altBuf.size() + "," + sampleBuf.size() + "\n");
 	}
 
 	void pushSamples(double[][] samples) {

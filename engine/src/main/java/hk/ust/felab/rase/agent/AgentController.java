@@ -6,15 +6,8 @@ import hk.ust.felab.rase.util.GsonUtil;
 
 import javax.annotation.Resource;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.google.gson.Gson;
 
-@Controller
 public class AgentController {
 	@Resource(name = GsonUtil.GSON_BRIEF)
 	private Gson gson;
@@ -22,18 +15,16 @@ public class AgentController {
 	@Resource
 	private AgentService agentService;
 
-	@RequestMapping(value = ClusterConf.ACTIVATE_AGENT, method = RequestMethod.POST)
-	@ResponseBody
-	public String activateAgent(@RequestParam int trialId,
-			@RequestParam String masterHost, @RequestParam int masterPort,
-			@RequestParam int agentAltBufSize,
-			@RequestParam int agentSampleBufSize,
-			@RequestParam int slaveIdOffset, @RequestParam int slaveLocalCount,
-			@RequestParam int slaveTotalCount,
-			@RequestParam String sampleGenerator,
-			@RequestParam int sampleCountStep) {
+	public String activateAgent( int trialId,
+			 String masterHost,  int masterPort,
+			 int agentAltBufSize,
+			 int agentSampleBufSize,
+			 int slaveIdOffset,  int slaveLocalCount,
+			 int slaveTotalCount,
+			 String sampleGenerator,
+			 int sampleCountStep) {
 
-		RasConf.get().trialId = trialId;
+		RasConf.get().trialCount = trialId;
 
 		ClusterConf.get().masterHost = masterHost;
 		ClusterConf.get().masterPort = masterPort;
@@ -60,8 +51,6 @@ public class AgentController {
 		return gson.toJson(ClusterConf.get()) + "\n";
 	}
 
-	@RequestMapping(value = ClusterConf.README, method = RequestMethod.GET)
-	@ResponseBody
 	public String readme() {
 		return "ranking and selection engine\n";
 	}

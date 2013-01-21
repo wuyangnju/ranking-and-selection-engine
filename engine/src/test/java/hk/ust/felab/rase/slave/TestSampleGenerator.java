@@ -2,7 +2,6 @@ package hk.ust.felab.rase.slave;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.BitSet;
 
 import org.junit.Test;
 

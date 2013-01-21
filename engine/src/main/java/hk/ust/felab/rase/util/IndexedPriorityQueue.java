@@ -7,6 +7,8 @@
 
 package hk.ust.felab.rase.util;
 
+import hk.ust.felab.rase.master.Alt;
+
 import java.util.AbstractQueue;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -16,6 +18,8 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+
+import org.apache.log4j.Logger;
 
 /**
  * An unbounded priority {@linkplain Queue queue} based on a priority heap. The
@@ -72,6 +76,8 @@ import java.util.Queue;
  */
 public class IndexedPriorityQueue<E> extends AbstractQueue<E> implements
 		java.io.Serializable {
+
+	private transient final Logger log = Logger.getLogger(getClass());
 
 	private static final long serialVersionUID = -7720805057305804111L;
 
@@ -192,6 +198,10 @@ public class IndexedPriorityQueue<E> extends AbstractQueue<E> implements
 	}
 
 	public int myOffer(E e) {
+		if (log.isDebugEnabled() && (keyToIndex == 2)) {
+			log.debug("myOffer," + ((Alt) e).key3() + "," + ((Alt) e).getId()
+					+ "\n");
+		}
 		if (e == null)
 			throw new NullPointerException();
 		modCount++;
@@ -207,13 +217,20 @@ public class IndexedPriorityQueue<E> extends AbstractQueue<E> implements
 			return siftUp(i, e);
 	}
 
+	public E peekExcept(E e) {
+		if (peek() != e)
+			return peek();
+		else
+			return peekSecond();
+	}
+
 	public E peek() {
 		if (size == 0)
 			return null;
 		return (E) queue[0];
 	}
 
-	public E peekSecond() {
+	private E peekSecond() {
 		if (size <= 1)
 			return null;
 		if (size == 2)
@@ -261,6 +278,10 @@ public class IndexedPriorityQueue<E> extends AbstractQueue<E> implements
 	}
 
 	public int myRemove(Object o) {
+		if (log.isDebugEnabled() && (keyToIndex == 2)) {
+			log.debug("myRemove," + ((Alt) o).key3() + "," + ((Alt) o).getId()
+					+ "\n");
+		}
 		int i = indexOf(o);
 		if (i == -1)
 			return 0;
@@ -563,6 +584,10 @@ public class IndexedPriorityQueue<E> extends AbstractQueue<E> implements
 	}
 
 	public int siftUp(E x) {
+		if (log.isDebugEnabled() && (keyToIndex == 2)) {
+			log.debug("siftUp," + ((Alt) x).key3() + "," + ((Alt) x).getId()
+					+ "\n");
+		}
 		return siftUp(((Indexed) x).getIndex(keyToIndex), x);
 	}
 
@@ -602,6 +627,10 @@ public class IndexedPriorityQueue<E> extends AbstractQueue<E> implements
 	}
 
 	public int siftDown(E x) {
+		if (log.isDebugEnabled() && (keyToIndex == 2)) {
+			log.debug("siftDown," + ((Alt) x).key3() + "," + ((Alt) x).getId()
+					+ "\n");
+		}
 		return siftDown(((Indexed) x).getIndex(keyToIndex), x);
 	}
 
@@ -734,4 +763,21 @@ public class IndexedPriorityQueue<E> extends AbstractQueue<E> implements
 		// spec has never explained what that might be.
 		heapify();
 	}
+
+	public boolean check() {
+		for (int i = 0; i < size / 2; i++) {
+			if (i * 2 + 1 < size) {
+				if (((Comparable) queue[i]).compareTo(queue[2 * i + 1]) >= 0) {
+					return false;
+				}
+			}
+			if (i * 2 + 2 < size) {
+				if (((Comparable) queue[i]).compareTo(queue[2 * i + 2]) >= 0) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 }

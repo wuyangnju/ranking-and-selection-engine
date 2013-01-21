@@ -103,7 +103,7 @@ public class Alt implements Indexed {
 	}
 
 	public double thetaOverY() {
-		return Math.sqrt(var() / data[5]);
+		return Math.sqrt(var() / simTimeMean());
 	}
 
 	public long num() {
@@ -112,6 +112,14 @@ public class Alt implements Indexed {
 
 	public double mean() {
 		return data[1] / data[0];
+	}
+
+	public double simTimeMean() {
+		if (RasConf.get().fix) {
+			return data[5];
+		} else {
+			return data[4] / data[0];
+		}
 	}
 
 	public double var() {

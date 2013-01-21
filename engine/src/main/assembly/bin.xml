@@ -6,35 +6,29 @@
 	<formats>
 		<format>zip</format>
 	</formats>
-	<files>
-		<file>
-			<source>src/main/scripts/run.sh</source>
+	<fileSets>
+		<fileSet>
+			<directory>src/main/scripts</directory>
+			<includes>
+				<include>*</include>
+			</includes>
 			<outputDirectory>bin</outputDirectory>
 			<lineEnding>unix</lineEnding>
 			<fileMode>0755</fileMode>
-		</file>
-        <file>
-            <source>src/main/scripts/debug.sh</source>
-            <outputDirectory>bin</outputDirectory>
-            <lineEnding>unix</lineEnding>
-            <fileMode>0755</fileMode>
-        </file>
-		<file>
-			<source>target/${project.artifactId}.jar</source>
-			<outputDirectory>lib</outputDirectory>
-		</file>
-	</files>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/op-scripts/conf</directory>
+			<includes>
+				<include>*</include>
+			</includes>
+			<outputDirectory>conf</outputDirectory>
+			<lineEnding>unix</lineEnding>
+			<fileMode>0755</fileMode>
+		</fileSet>
+	</fileSets>
 	<dependencySets>
 		<dependencySet>
-			<useProjectArtifact>false</useProjectArtifact>
 			<outputDirectory>lib</outputDirectory>
 		</dependencySet>
 	</dependencySets>
-	<fileSets>
-		<!-- this project should not be a war -->
-		<fileSet>
-			<directory>src/main/webapp</directory>
-			<outputDirectory>war</outputDirectory>
-		</fileSet>
-	</fileSets>
 </assembly>

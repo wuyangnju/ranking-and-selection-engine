@@ -10,8 +10,7 @@ public class ClusterConf {
 	public static final String ACTIVATE_AGENT = "activateAgent";
 	public static final String README = "readme";
 
-	public static final String LOG_DIR = System.getProperty("log.dir",
-			"rase/logs");
+	public static final String LOG_DIR = System.getProperty("log.dir");
 
 	private static ClusterConf instance = new ClusterConf();
 

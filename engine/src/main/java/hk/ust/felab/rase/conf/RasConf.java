@@ -15,6 +15,8 @@ public class RasConf {
 
 	public int sampleCountStep;
 
+	public double[][] alts;
+
 	/**
 	 * number of alternatives(alts)
 	 */
@@ -41,6 +43,6 @@ public class RasConf {
 
 	public boolean fix;
 
-	public int trialId;
+	public int trialCount;
 
 }

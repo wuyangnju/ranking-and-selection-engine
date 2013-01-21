@@ -1,37 +1,52 @@
 package hk.ust.felab.rase.util;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 
 public class TestIndexedPriorityQueue {
 
 	/**
 	 * @param args
+	 * @throws Exception
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		IndexedPriorityQueue<Element> q = new IndexedPriorityQueue<Element>(5,
 				null, 0);
-		List<Element> l = new LinkedList<Element>();
-		l.add(new Element(5));
-		l.add(new Element(1));
-		l.add(new Element(6));
-		l.add(new Element(8));
-		l.add(new Element(0));
-		for (Element e : l) {
-			System.out.println(q.myOffer(e));
-		}
-		l.get(1).value = 7;
-		System.out.println(q.siftDown(l.get(1)));
-		System.out.println(q.myRemove(l.get(4)));
-	}
+		Element[] l = new Element[100];
 
+		BufferedReader br = new BufferedReader(new InputStreamReader(
+				new FileInputStream("src/test/resources/myheap.log")));
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			String[] fields = line.split(",");
+			String op = fields[0];
+			double value = Double.parseDouble(fields[1]);
+			int id = Integer.parseInt(fields[2]);
+			if ("myOffer".equals(op)) {
+				l[id - 1] = new Element(value);
+				q.myOffer(l[id - 1]);
+			} else if ("siftUp".equals(op)) {
+				q.siftUp(l[id - 1]);
+			} else if ("siftDown".equals(op)) {
+				q.siftDown(l[id - 1]);
+			} else if ("myRemove".equals(op)) {
+				q.myRemove(l[id - 1]);
+			} else {
+				System.out.println(line);
+			}
+			q.size(); // otherwise can't set breakpoint here
+		}
+		System.out.println(q.check());
+		br.close();
+	}
 }
 
 class Element implements Indexed, Comparable<Element> {
-	public int value;
+	public double value;
 	private int index;
 
-	public Element(int value) {
+	public Element(double value) {
 		this.value = value;
 	}
 
@@ -47,6 +62,11 @@ class Element implements Indexed, Comparable<Element> {
 
 	@Override
 	public int compareTo(Element o) {
-		return value - o.value;
+		return value - o.value > 0 ? 1 : -1;
+	}
+
+	@Override
+	public String toString() {
+		return String.valueOf(value);
 	}
 }

@@ -1,8 +1,7 @@
 package hk.ust.felab.rase.slave;
 
 import hk.ust.felab.rase.agent.Agent;
-import hk.ust.felab.rase.conf.ClusterConf;
-import hk.ust.felab.rase.conf.RasConf;
+import hk.ust.felab.rase.conf.Conf;
 import hk.ust.felab.rase.sim.SampleGen;
 import hk.ust.felab.rase.util.SampleGenClassLoader;
 
@@ -31,7 +30,7 @@ public class Slave {
 		this.slaveId = slaveId;
 
 		String className = "hk.ust.felab.rase.sim.impl."
-				+ RasConf.get().sampleGenerator;
+				+ Conf.current().getSampleGenerator();
 		SampleGenClassLoader classLoader = new SampleGenClassLoader();
 		classLoader.loadClass(className);
 		this.sampleGen = (SampleGen) Class
@@ -41,13 +40,13 @@ public class Slave {
 		this.agent = agent;
 
 		perf1 = Logger.getLogger("slave.perf1." + slaveId);
-		perf1.addAppender(new FileAppender(new PatternLayout("%m"),
-				ClusterConf.LOG_DIR + "/slave_perf1_" + slaveId + ".csv",
+		perf1.addAppender(new FileAppender(new PatternLayout("%m"), System
+				.getProperty("log.dir") + "/slave_perf1_" + slaveId + ".csv",
 				false, false, 16192));
 
 		perf2 = Logger.getLogger("slave.perf2." + slaveId);
-		perf2.addAppender(new FileAppender(new PatternLayout("%m"),
-				ClusterConf.LOG_DIR + "/slave_perf2_" + slaveId + ".csv",
+		perf2.addAppender(new FileAppender(new PatternLayout("%m"), System
+				.getProperty("log.dir") + "/slave_perf2_" + slaveId + ".csv",
 				false, false, 16192));
 
 		thread = new ConsumeAltProduceSampleThread();
@@ -91,7 +90,7 @@ public class Slave {
 					perf1.trace((perf1End - perf1Start) + "\n");
 
 					sampleCount++;
-					if (sampleCount % RasConf.get().sampleCountStep == 0) {
+					if (sampleCount % Conf.current().getSampleCountStep() == 0) {
 						perf2.trace((System.currentTimeMillis() - perf2Start)
 								+ "," + sampleCount + "\n");
 					}

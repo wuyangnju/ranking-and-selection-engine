@@ -1,6 +1,6 @@
 package hk.ust.felab.rase.master;
 
-import hk.ust.felab.rase.conf.RasConf;
+import hk.ust.felab.rase.conf.Conf;
 import hk.ust.felab.rase.util.GsonUtil;
 import hk.ust.felab.rase.util.Indexed;
 
@@ -75,10 +75,10 @@ public class Alt implements Indexed {
 	public long addSample(double sample, long simTime) {
 		data[0]++;
 		data[1] += sample;
-		if (RasConf.get().fix) {
-			if (data[0] < RasConf.get().n0) {
+		if (Conf.current().isFix()) {
+			if (data[0] < Conf.current().getN0()) {
 				update(sample, simTime);
-			} else if (data[0] == RasConf.get().n0) {
+			} else if (data[0] == Conf.current().getN0()) {
 				update(sample, simTime);
 				fix();
 			}
@@ -119,7 +119,7 @@ public class Alt implements Indexed {
 	}
 
 	public double simTimeMean() {
-		if (RasConf.get().fix) {
+		if (Conf.current().isFix()) {
 			return data[5];
 		} else {
 			return data[4] / data[0];
@@ -127,7 +127,7 @@ public class Alt implements Indexed {
 	}
 
 	public double var() {
-		if (RasConf.get().fix) {
+		if (Conf.current().isFix()) {
 			return data[3];
 		} else {
 			return (data[2] - data[1] * data[1] / data[0]) / (data[0] - 1);
@@ -139,15 +139,15 @@ public class Alt implements Indexed {
 	}
 
 	public double key2() {
-		return mean() - RasConf.get().a * var() / data[0];
+		return mean() - Conf.current().getA() * var() / data[0];
 	}
 
 	public double key3() {
-		return mean() + RasConf.get().a * var() / data[0];
+		return mean() + Conf.current().getA() * var() / data[0];
 	}
 
 	public boolean lessThan(Alt o) {
-		return key3() < o.key2() + RasConf.get().b;
+		return key3() < o.key2() + Conf.current().getB();
 	}
 
 	@Override

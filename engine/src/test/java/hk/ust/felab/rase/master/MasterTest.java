@@ -1,6 +1,6 @@
 package hk.ust.felab.rase.master;
 
-import hk.ust.felab.rase.conf.ConfLoader;
+import hk.ust.felab.rase.conf.Conf;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -13,7 +13,7 @@ public class MasterTest {
 	static class MockProduceSampleThread implements Runnable {
 		@Override
 		public void run() {
-			String log = "src/test/resources/master_sample.csv";
+			String log = "src/test/resources/master_sample0.csv";
 			BufferedReader br;
 			try {
 				br = new BufferedReader(new InputStreamReader(
@@ -41,7 +41,7 @@ public class MasterTest {
 	public static void main(String[] args) throws Exception {
 		String rasConf = "src/main/op-scripts/conf/case1.ras";
 		String altsConf = "src/main/op-scripts/conf/case1.100.alts";
-		ConfLoader.loadConf(new String[] { rasConf, altsConf });
+		Conf.loadFromCmdArgs(new String[] { rasConf, altsConf });
 		master = new Master();
 
 		Thread mock = new Thread(new MockProduceSampleThread());

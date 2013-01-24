@@ -1,8 +1,7 @@
 package hk.ust.felab.rase.master;
 
 import hk.ust.felab.rase.agent.Agent;
-import hk.ust.felab.rase.conf.ClusterConf;
-import hk.ust.felab.rase.conf.RasConf;
+import hk.ust.felab.rase.conf.Conf;
 import hk.ust.felab.rase.util.IndexedPriorityQueue;
 
 import java.util.Comparator;
@@ -15,6 +14,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.log4j.Logger;
 
 public class Master implements Agent {
+	private static final int ALT_BUF_SIZE = 1024;
+	private static final int SAMPLE_BUF_SIZE = 1024;
+
 	private transient final Logger perf1 = Logger.getLogger("master.perf1");
 	private transient final Logger perf2 = Logger.getLogger("master.perf2");
 	private transient final Logger sampleLog = Logger
@@ -46,10 +48,11 @@ public class Master implements Agent {
 	private Callable<Integer> sampleConsumer;
 
 	public Master() {
-		alts = new Alt[RasConf.get().alts.length];
 
-		for (int i = 0; i < RasConf.get().alts.length; i++) {
-			alts[i] = new Alt(RasConf.get().alts[i]);
+		alts = new Alt[Conf.current().getAlts().length];
+
+		for (int i = 0; i < Conf.current().getAlts().length; i++) {
+			alts[i] = new Alt(Conf.current().getAlts()[i]);
 		}
 
 		for (int i = 0; i < alts.length; i++) {
@@ -57,27 +60,25 @@ public class Master implements Agent {
 			alts[i].next = alts[(i + 1) % alts.length];
 		}
 
-		altBuf = new LinkedBlockingQueue<Alt>(
-				ClusterConf.get().masterAltBufSize);
+		altBuf = new LinkedBlockingQueue<Alt>(ALT_BUF_SIZE);
 
-		sampleBuf = new LinkedBlockingQueue<Sample>(
-				ClusterConf.get().masterSampleBufSize);
+		sampleBuf = new LinkedBlockingQueue<Sample>(SAMPLE_BUF_SIZE);
 
-		alts1 = new IndexedPriorityQueue<Alt>(RasConf.get().k,
+		alts1 = new IndexedPriorityQueue<Alt>(Conf.current().getK(),
 				new Comparator<Alt>() {
 					@Override
 					public int compare(Alt alt1, Alt alt2) {
 						return alt1.key1() > alt2.key1() ? 1 : -1;
 					}
 				}, 0);
-		alts2 = new IndexedPriorityQueue<Alt>(RasConf.get().k,
+		alts2 = new IndexedPriorityQueue<Alt>(Conf.current().getK(),
 				new Comparator<Alt>() {
 					@Override
 					public int compare(Alt alt1, Alt alt2) {
 						return alt1.key2() < alt2.key2() ? 1 : -1;
 					}
 				}, 1);
-		alts3 = new IndexedPriorityQueue<Alt>(RasConf.get().k,
+		alts3 = new IndexedPriorityQueue<Alt>(Conf.current().getK(),
 				new Comparator<Alt>() {
 					@Override
 					public int compare(Alt alt1, Alt alt2) {
@@ -97,13 +98,19 @@ public class Master implements Agent {
 		return sampleConsumer;
 	}
 
+	/**
+	 * If this method is not called, the default initial seed is (12345, 12345,
+	 * 12345, 12345, 12345, 12345). If it is called, the first 3 values of the
+	 * seed must all be less than m1 = 4294967087, and not all 0; and the last 3
+	 * values must all be less than m2 = 4294944443, and not all 0.
+	 */
 	private class ProduceAltThread implements Runnable {
 
 		@Override
 		public void run() {
 			Thread.currentThread().setName("Master - produce alt");
 			try {
-				for (int i = 0; i < RasConf.get().n0; i++) {
+				for (int i = 0; i < Conf.current().getN0(); i++) {
 					// do not use batch add like
 					// altBuf.addAll(Arrays.asList(alts));
 					// in case batch size(k) exceeds altBuf size.
@@ -126,7 +133,7 @@ public class Master implements Agent {
 					altsLock.unlock();
 				}
 				try {
-					if (secondStageCount < RasConf.get().k) {
+					if (secondStageCount < Conf.current().getK()) {
 						prepAltLog.trace(alt.getId() + "," + 1 + "\n");
 						altBuf.put(alt);
 					} else {
@@ -170,7 +177,7 @@ public class Master implements Agent {
 			int[] sift = new int[] { 0, 0, 0 };
 			double k1, k2, k3;
 
-			if (alt.num() > RasConf.get().n0 - 1) {
+			if (alt.num() > Conf.current().getN0() - 1) {
 				k1 = alt.key1();
 				k2 = alt.key2();
 				k3 = alt.key3();
@@ -190,13 +197,13 @@ public class Master implements Agent {
 				} else {
 					sift[2] += alts3.siftDown(alt);
 				}
-			} else if (alt.num() == RasConf.get().n0 - 1) {
+			} else if (alt.num() == Conf.current().getN0() - 1) {
 				alt.addSample(sample, simTime);
 				sift[0] += alts1.myOffer(alt);
 				sift[1] += alts2.myOffer(alt);
 				sift[2] += alts3.myOffer(alt);
 				secondStageCount++;
-			} else if (alt.num() < RasConf.get().n0 - 1) {
+			} else if (alt.num() < Conf.current().getN0() - 1) {
 				alt.addSample(sample, simTime);
 			}
 
@@ -209,9 +216,9 @@ public class Master implements Agent {
 			}
 			// eliminate by mean immediately
 			Alt alt1 = alts1.peekExcept(alt);
-			while ((alt.key1() + alt1.key1()) < (RasConf.get().b / RasConf
-					.get().a)) {
-				if (RasConf.get().min ? (alt.mean() > alt1.mean()) : (alt
+			while ((alt.key1() + alt1.key1()) < (Conf.current().getB() / Conf
+					.current().getA())) {
+				if (Conf.current().isMin() ? (alt.mean() > alt1.mean()) : (alt
 						.mean() < alt1.mean())) {
 					remove(alt);
 					return;
@@ -229,7 +236,7 @@ public class Master implements Agent {
 			if (alts1.size() < 2) {
 				return;
 			}
-			if (RasConf.get().min) {
+			if (Conf.current().isMin()) {
 				// eliminate others
 				Alt alt1 = alts2.peekExcept(alt0);
 				while (alt0.lessThan(alt1)) {
@@ -279,7 +286,7 @@ public class Master implements Agent {
 				return;
 			}
 			adoptSample(alt, sampleObj);
-			if (alt.num() < RasConf.get().n0) {
+			if (alt.num() < Conf.current().getN0()) {
 				return;
 			}
 			checkElimination1(alt);
@@ -307,15 +314,15 @@ public class Master implements Agent {
 				perf1.trace((perf1End - perf1Start) + "\n");
 
 				siftLog.trace("\n");
-				if (sampleCount % RasConf.get().sampleCountStep == 0) {
+				if (sampleCount % Conf.current().getSampleCountStep() == 0) {
 					perf2.trace((System.currentTimeMillis() - start) + ","
 							+ sampleCount + "," + secondStageCount + ","
 							+ eliminatedCount + "," + altBuf.size() + ","
 							+ sampleBuf.size() + "\n");
 				}
 
-				if (eliminatedCount == RasConf.get().k - 1) {
-					resultLog.info(RasConf.get().trialCount + ","
+				if (eliminatedCount == Conf.current().getK() - 1) {
+					resultLog.info(Conf.current().getRepeatTime() + ","
 							+ alts1.peek().getId() + "\n");
 					return alts1.peek().getId();
 				}

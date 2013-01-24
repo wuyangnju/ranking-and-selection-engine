@@ -52,7 +52,7 @@ public class ConfLoader {
 		ClusterConf.get().masterAltBufSize = 8096;
 		ClusterConf.get().masterSampleBufSize = 8096;
 		ClusterConf.get().slaveIdOffset = 0;
-		ClusterConf.get().slaveLocalCount = 1;
+		ClusterConf.get().slaveLocalCount = 6;
 	}
 
 	private static double[] stringToAltArgs(String line) {

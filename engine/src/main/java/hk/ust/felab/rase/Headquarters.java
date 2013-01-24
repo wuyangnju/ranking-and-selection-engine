@@ -2,7 +2,6 @@ package hk.ust.felab.rase;
 
 import hk.ust.felab.rase.conf.ClusterConf;
 import hk.ust.felab.rase.conf.ConfLoader;
-import hk.ust.felab.rase.conf.RasConf;
 import hk.ust.felab.rase.master.Master;
 import hk.ust.felab.rase.slave.Slave;
 
@@ -24,7 +23,7 @@ public class Headquarters {
 		List<Slave> slaves = new ArrayList<Slave>(
 				ClusterConf.get().slaveLocalCount);
 		for (int i = ClusterConf.get().slaveIdOffset; i < ClusterConf.get().slaveLocalCount; i++) {
-			slaves.add(new Slave(i, RasConf.get().sampleGenerator, master));
+			slaves.add(new Slave(i, master));
 		}
 
 		ExecutorService executorService = Executors

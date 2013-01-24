@@ -4,6 +4,7 @@ import hk.ust.felab.rase.agent.Agent;
 import hk.ust.felab.rase.conf.ClusterConf;
 import hk.ust.felab.rase.conf.RasConf;
 import hk.ust.felab.rase.sim.SampleGen;
+import hk.ust.felab.rase.util.SampleGenClassLoader;
 
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
@@ -20,17 +21,23 @@ public class Slave {
 	 */
 	private transient final Logger perf2;
 
+	private int slaveId;
 	private SampleGen sampleGen;
 	private Agent agent;
 	private long sampleCount = 0;
-	private Thread thread;
+	private Runnable thread;
 
-	public Slave(int slaveId, String sampleGen, Agent agent) throws Exception {
+	public Slave(int slaveId, Agent agent) throws Exception {
+		this.slaveId = slaveId;
+
+		String className = "hk.ust.felab.rase.sim.impl."
+				+ RasConf.get().sampleGenerator;
+		SampleGenClassLoader classLoader = new SampleGenClassLoader();
+		classLoader.loadClass(className);
 		this.sampleGen = (SampleGen) Class
-				.forName(
-						"hk.ust.felab.rase.sim.impl."
-								+ RasConf.get().sampleGenerator)
+				.forName(className, true, classLoader)
 				.getConstructor(Integer.class).newInstance(slaveId);
+
 		this.agent = agent;
 
 		perf1 = Logger.getLogger("slave.perf1." + slaveId);
@@ -43,11 +50,10 @@ public class Slave {
 				ClusterConf.LOG_DIR + "/slave_perf2_" + slaveId + ".csv",
 				false, false, 16192));
 
-		thread = new Thread(new ConsumeAltProduceSampleThread(), "Slave "
-				+ slaveId + " - consume alt, produce sample");
+		thread = new ConsumeAltProduceSampleThread();
 	}
 
-	public Thread getThread() {
+	public Runnable getThread() {
 		return thread;
 	}
 
@@ -62,6 +68,9 @@ public class Slave {
 
 		@Override
 		public void run() {
+			Thread.currentThread().setName(
+					"Slave " + slaveId + " - consume alt, produce sample");
+
 			long perf1End = System.currentTimeMillis(), perf2Start = perf1End, perf1Start;
 			double[] alt, sample;
 			while (true) {
@@ -87,9 +96,7 @@ public class Slave {
 								+ "," + sampleCount + "\n");
 					}
 				} catch (InterruptedException e) {
-					sampleCount = 0;
-					perf2Start = System.currentTimeMillis();
-					break;
+					return;
 				}
 			}
 		}

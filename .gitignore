@@ -5,6 +5,5 @@ target/
 *.swp
 *.log
 logs/
-logs_bak/
 .idea
 *.iml

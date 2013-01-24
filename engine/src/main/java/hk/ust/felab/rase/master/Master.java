@@ -5,11 +5,12 @@ import hk.ust.felab.rase.conf.ClusterConf;
 import hk.ust.felab.rase.conf.RasConf;
 import hk.ust.felab.rase.util.IndexedPriorityQueue;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 
@@ -27,6 +28,7 @@ public class Master implements Agent {
 	private transient final Logger prepAltLog = Logger
 			.getLogger("master.prepalt");
 
+	private Lock altsLock = new ReentrantLock();
 	private Alt[] alts;
 
 	private BlockingQueue<Alt> altBuf;
@@ -44,17 +46,19 @@ public class Master implements Agent {
 	private Callable<Integer> sampleConsumer;
 
 	public Master() {
-		alts = new Alt[RasConf.get().k];
+		alts = new Alt[RasConf.get().alts.length];
 
-		for (int i = 0; i < RasConf.get().k; i++) {
+		for (int i = 0; i < RasConf.get().alts.length; i++) {
 			alts[i] = new Alt(RasConf.get().alts[i]);
+		}
+
+		for (int i = 0; i < alts.length; i++) {
+			alts[i].prev = alts[(i - 1 + alts.length) % alts.length];
+			alts[i].next = alts[(i + 1) % alts.length];
 		}
 
 		altBuf = new LinkedBlockingQueue<Alt>(
 				ClusterConf.get().masterAltBufSize);
-		for (int i = 0; i < RasConf.get().n0; i++) {
-			altBuf.addAll(Arrays.asList(alts));
-		}
 
 		sampleBuf = new LinkedBlockingQueue<Sample>(
 				ClusterConf.get().masterSampleBufSize);
@@ -98,17 +102,30 @@ public class Master implements Agent {
 		@Override
 		public void run() {
 			Thread.currentThread().setName("Master - produce alt");
-			int i = 0;
-			Alt alt = null;
+			try {
+				for (int i = 0; i < RasConf.get().n0; i++) {
+					// do not use batch add like
+					// altBuf.addAll(Arrays.asList(alts));
+					// in case batch size(k) exceeds altBuf size.
+					for (Alt alt : alts) {
+						altBuf.put(alt);
+					}
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			Alt alt = alts[0].prev;
 			while (true) {
 				try {
-					while (!alts[i].isSurviving()) {
-						i++;
-						if (i == alts.length) {
-							i = 0;
-						}
+					altsLock.lock();
+					alt = alt.next;
+					while (!alt.isSurviving()) {
+						alt = alt.next;
 					}
-					alt = alts[i];
+				} finally {
+					altsLock.unlock();
+				}
+				try {
 					if (secondStageCount < RasConf.get().k) {
 						prepAltLog.trace(alt.getId() + "," + 1 + "\n");
 						altBuf.put(alt);
@@ -120,12 +137,8 @@ public class Master implements Agent {
 							altBuf.put(alt);
 						}
 					}
-					i++;
-					if (i == alts.length) {
-						i = 0;
-					}
 				} catch (InterruptedException e) {
-					break;
+					return;
 				}
 			}
 		}
@@ -135,7 +148,15 @@ public class Master implements Agent {
 		private void remove(Alt alt) {
 			if (!alt.isSurviving())
 				return;
-			alt.setSurviving(false);
+			try {
+				altsLock.lock();
+				alt.setSurviving(false);
+				// delete current node from a doubly linked list
+				alt.prev.next = alt.next;
+				alt.next.prev = alt.prev;
+			} finally {
+				altsLock.unlock();
+			}
 			eliminatedCount++;
 
 			siftLog.trace("," + alts1.myRemove(alt) + "," + alts2.myRemove(alt)

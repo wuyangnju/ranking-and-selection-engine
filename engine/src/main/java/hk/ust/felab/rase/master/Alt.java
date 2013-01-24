@@ -4,11 +4,16 @@ import hk.ust.felab.rase.conf.RasConf;
 import hk.ust.felab.rase.util.GsonUtil;
 import hk.ust.felab.rase.util.Indexed;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class Alt implements Indexed {
 	private int id;
-	private AtomicBoolean surviving = new AtomicBoolean(true);
+
+	// ConsumeSampleThread and ProduceAltThread will race on it
+	private volatile boolean surviving = true;
+
+	// ProduceAltThread and GetAltThread will race on them
+	// Master will access them directly
+	Alt prev, next;
+
 	private double[] args;
 	private double[] data;
 	private int[] indexInPriorityQueue = new int[] { -1, -1, -1 };
@@ -40,7 +45,6 @@ public class Alt implements Indexed {
 		// data[4]: sumOfSimTime
 		// data[5]: fixedAvgSimTime
 		data = new double[] { 0, 0, 0, 0, 0, 0 };
-
 	}
 
 	public int getId() {
@@ -48,11 +52,11 @@ public class Alt implements Indexed {
 	}
 
 	public boolean isSurviving() {
-		return surviving.get();
+		return surviving;
 	}
 
 	public void setSurviving(boolean surviving) {
-		this.surviving.set(surviving);
+		this.surviving = surviving;
 	}
 
 	private void update(double sample, long simTime) {

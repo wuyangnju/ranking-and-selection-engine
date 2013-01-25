@@ -16,34 +16,36 @@ import org.apache.log4j.PropertyConfigurator;
 public class Headquarters {
 
 	/**
-	 * @param args
-	 *            rasConf altsConf [logs [simThreadNum]]
+	 * TODO enhance cmdline args by common-cli
 	 * 
+	 * @param args
+	 *            rasConf altsConf repeatTime logDir simThreadNum
 	 */
 	public static void main(String[] args) throws Exception {
 		Conf.loadFromCmdArgs(args);
 
-		// TODO log.dir passed in,
-		String logDir = args.length > 2 ? args[2] : "logs";
-		// TODO threadNum detection/passed in
-		int simThreadNum = args.length > 3 ? Integer.parseInt(args[3]) : 1;
+		int repeatTime = Integer.parseInt(args[2]);
+		String logDir = args[3];
+		// TODO available thread # detection
+		int simThreadNum = Integer.parseInt(args[4]);
 
 		String className = "hk.ust.felab.rase.sim.impl."
 				+ Conf.current().getSampleGenerator();
 		SampleGen[] sampleGens = new SampleGen[simThreadNum];
-		for (int i = 0; i < simThreadNum; i++) {
-			SampleGenClassLoader classLoader = new SampleGenClassLoader();
-			classLoader.loadClass(className);
-			SampleGen sampleGen = (SampleGen) Class
-					.forName(className, true, classLoader)
-					.getConstructor(Integer.class).newInstance(i);
-			sampleGens[i] = sampleGen;
-		}
 
-		for (int j = 1; j <= Conf.current().getRepeatTime(); j++) {
+		for (int j = 1; j <= repeatTime; j++) {
 			System.setProperty("log.dir", logDir + "/" + j);
 			PropertyConfigurator.configure(ClassLoader
 					.getSystemResourceAsStream("log4j.properties"));
+
+			for (int i = 0; i < simThreadNum; i++) {
+				SampleGenClassLoader classLoader = new SampleGenClassLoader();
+				classLoader.loadClass(className);
+				SampleGen sampleGen = (SampleGen) Class
+						.forName(className, true, classLoader)
+						.getConstructor(Integer.class).newInstance(i);
+				sampleGens[i] = sampleGen;
+			}
 
 			Master master = new Master();
 			Slave[] slaves = new Slave[simThreadNum];

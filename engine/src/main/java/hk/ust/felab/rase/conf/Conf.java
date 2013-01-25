@@ -47,8 +47,6 @@ public class Conf {
 
 	private boolean fix;
 
-	private int trialCount;
-
 	public String getSampleGenerator() {
 		return sampleGenerator;
 	}
@@ -91,10 +89,6 @@ public class Conf {
 
 	public boolean isFix() {
 		return fix;
-	}
-
-	public int getRepeatTime() {
-		return trialCount;
 	}
 
 	public static Conf current() {
@@ -146,9 +140,6 @@ public class Conf {
 		instance.n0 = Integer.parseInt(rasConf.getProperty("n0"));
 
 		instance.fix = Boolean.parseBoolean(rasConf.getProperty("fix"));
-
-		instance.trialCount = Integer.parseInt(rasConf
-				.getProperty("trialCount"));
 	}
 
 	private static double[] stringToAltArgs(String line) {

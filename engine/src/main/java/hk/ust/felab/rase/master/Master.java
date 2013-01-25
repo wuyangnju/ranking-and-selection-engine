@@ -322,8 +322,7 @@ public class Master implements Agent {
 				}
 
 				if (eliminatedCount == Conf.current().getK() - 1) {
-					resultLog.info(Conf.current().getRepeatTime() + ","
-							+ alts1.peek().getId() + "\n");
+					resultLog.info(alts1.peek().getId() + "\n");
 					return alts1.peek().getId();
 				}
 			}

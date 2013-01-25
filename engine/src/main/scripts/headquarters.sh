@@ -8,6 +8,4 @@ do
     CLASSPATH="${CLASSPATH}:${i}"
 done
 
-mkdir -p "$(dirname $0)/../logs"
-nohup java -cp "${CLASSPATH}" -Dlog.dir="$(dirname $0)/../logs" \
-"${MAIN_CLASS}" "$@" 2>&1 1>> "$(dirname $0)/../logs/app.log" &
+java -cp "${CLASSPATH}" "${MAIN_CLASS}" "$@"

@@ -16,7 +16,7 @@ public class SampleGenClassLoader extends ClassLoader {
 			return c;
 		}
 
-		if ("hk.ust.felab.rase.sim.SampleGen".equals(name)) {
+		if (name.equals("hk.ust.felab.rase.sim.SampleGen")) {
 			return super.loadClass(name, resolve);
 		}
 

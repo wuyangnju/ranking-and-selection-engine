@@ -3,7 +3,6 @@ package hk.ust.felab.rase.slave;
 import hk.ust.felab.rase.agent.Agent;
 import hk.ust.felab.rase.conf.Conf;
 import hk.ust.felab.rase.sim.SampleGen;
-import hk.ust.felab.rase.util.SampleGenClassLoader;
 
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
@@ -26,17 +25,10 @@ public class Slave {
 	private long sampleCount = 0;
 	private Runnable thread;
 
-	public Slave(int slaveId, Agent agent) throws Exception {
+	public Slave(int slaveId, SampleGen sampleGen, Agent agent)
+			throws Exception {
 		this.slaveId = slaveId;
-
-		String className = "hk.ust.felab.rase.sim.impl."
-				+ Conf.current().getSampleGenerator();
-		SampleGenClassLoader classLoader = new SampleGenClassLoader();
-		classLoader.loadClass(className);
-		this.sampleGen = (SampleGen) Class
-				.forName(className, true, classLoader)
-				.getConstructor(Integer.class).newInstance(slaveId);
-
+		this.sampleGen = sampleGen;
 		this.agent = agent;
 
 		perf1 = Logger.getLogger("slave.perf1." + slaveId);

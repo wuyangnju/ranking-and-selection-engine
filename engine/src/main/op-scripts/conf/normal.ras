@@ -5,4 +5,4 @@ alpha=0.05
 delta=1
 n0=15
 fix=true
-trialCount=1
+trialCount=5

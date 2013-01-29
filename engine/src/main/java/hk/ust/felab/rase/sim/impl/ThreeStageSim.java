@@ -52,8 +52,8 @@ public class ThreeStageSim implements SampleGen {
 			mu[2] = x[3];
 			bufferSize[0] = x[4];
 			bufferSize[1] = x[5];
-			warmupTime = 1000.0;
-			horizonTime = 5000.0;
+			warmupTime = 100.0;
+			horizonTime = 1100.0;
 			lambda = 100.0;
 
 			block = new boolean[2];

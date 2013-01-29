@@ -1,0 +1,2 @@
+slaveId -> randome generated seed
+Netty

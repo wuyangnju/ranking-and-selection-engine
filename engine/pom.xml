@@ -5,7 +5,7 @@
 	<groupId>hk.ust.felab</groupId>
 	<artifactId>rase</artifactId>
 	<packaging>jar</packaging>
-	<version>4.0.0</version>
+	<version>4.0.1</version>
 
 	<name>rase</name>
 	<url>http://rase.wuyangnju.com</url>
@@ -78,38 +78,12 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>wagon-maven-plugin</artifactId>
-				<version>1.0-beta-4</version>
-				<configuration>
-					<fromDir>
-						${project.basedir}/src/main/op-scripts
-					</fromDir>
-					<serverId>ssh_143.89.20.47</serverId>
-					<url>scp://ielm@143.89.20.47</url>
-					<toDir>/home/ielm/irase/</toDir>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>upload</goal>
-						</goals>
-						<phase>deploy</phase>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 
 		<extensions>
 			<extension>
 				<groupId>org.apache.maven.wagon</groupId>
 				<artifactId>wagon-ftp</artifactId>
-				<version>2.2</version>
-			</extension>
-			<extension>
-				<groupId>org.apache.maven.wagon</groupId>
-				<artifactId>wagon-ssh</artifactId>
 				<version>2.2</version>
 			</extension>
 		</extensions>

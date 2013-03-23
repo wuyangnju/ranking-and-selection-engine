@@ -1,8 +1,0 @@
-sampleGenerator=ExpDelayedNormalPositive
-sampleCountStep=1
-min=false
-alpha=0.05
-delta=0.25
-n0=16
-fix=false
-trialCount=5

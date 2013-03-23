@@ -1,14 +1,13 @@
 package hk.ust.felab.rase.sim.impl;
 
 import hk.ust.felab.rase.sim.SampleGen;
-
-import java.util.LinkedList;
-
 import umontreal.iro.lecuyer.randvar.ExponentialGen;
 import umontreal.iro.lecuyer.randvar.RandomVariateGen;
 import umontreal.iro.lecuyer.rng.MRG32k3a;
 import umontreal.iro.lecuyer.simevents.Event;
 import umontreal.iro.lecuyer.simevents.Sim;
+
+import java.util.LinkedList;
 
 public class ThreeStageSim implements SampleGen {
 
@@ -52,8 +51,8 @@ public class ThreeStageSim implements SampleGen {
 			mu[2] = x[3];
 			bufferSize[0] = x[4];
 			bufferSize[1] = x[5];
-			warmupTime = 100.0;
-			horizonTime = 1100.0;
+			warmupTime = 500.0;
+			horizonTime = 1000.0;
 			lambda = 100.0;
 
 			block = new boolean[2];

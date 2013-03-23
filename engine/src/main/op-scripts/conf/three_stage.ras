@@ -1,7 +1,0 @@
-sampleGenerator=ThreeStageSim
-sampleCountStep=1
-min=false
-alpha=0.05
-delta=0.01
-n0=16
-fix=false

@@ -2,6 +2,7 @@
 .project
 .settings/
 target/
+tmp
 *.swp
 *.log
 logs*

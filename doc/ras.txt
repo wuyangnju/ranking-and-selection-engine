@@ -1,4 +1,0 @@
-Suppose we have k candidates, or systems. Each of them will perform, or take action, repeatedly(with unknown arrival time/with certain order, e.g. take turns) and independently. And every time when a candidate performs, there will be a numerical result(following identical distribution, e.g. normal) as an observation. Now, our question is, how to (design an online algorithm to) choose the best candidate, defined as the one with maximum mean of observations in long-run, within finite number of total observations(since having a observation has its cost), and also control the error rate.
-
-why normal?
-every distribution(simulation)'s mean will distribute normally. fill Yi,j with the mean of observations of candidate i' 1st, 2nd, ...jth action.

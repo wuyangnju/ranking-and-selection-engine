@@ -27,10 +27,8 @@ public class Headquarters {
 			InstantiationException, ExecutionException, InterruptedException {
 		int argsI = 0;
 		String altsStr = args[argsI++];
-		String rasClassName = args[argsI++];
 		String rasClassFile = args[argsI++];
 		String rasArgsStr = args[argsI++];
-		String simClassName = args[argsI++];
 		String simClassFile = args[argsI++];
 		String simArgsStr = args[argsI++];
 		String repeatTimeStr = args[argsI++];
@@ -38,10 +36,12 @@ public class Headquarters {
 
 		double[][] alts = loadAltsFromFile(altsStr);
 
+		String rasClassName = getClassName(rasClassFile);
 		RaseClassLoader classLoader = new RaseClassLoader(rasClassName,
 				rasClassFile);
 		classLoader.loadClass(rasClassName);
-		Ras ras = (Ras) Class.forName(rasClassName, true, classLoader).newInstance();
+		Ras ras = (Ras) Class.forName(rasClassName, true, classLoader)
+				.newInstance();
 
 		double[] rasArgs = ArraysUtil.stringToDoubleArray(rasArgsStr);
 
@@ -52,14 +52,6 @@ public class Headquarters {
 			simThreadNum = Runtime.getRuntime().availableProcessors();
 		}
 
-		List<Sim> sims = new LinkedList<Sim>();
-		for (int i = 0; i < simThreadNum; i++) {
-			classLoader = new RaseClassLoader(simClassName, simClassFile);
-			classLoader.loadClass(simClassName);
-			sims.add((Sim) Class.forName(simClassName, true, classLoader)
-					.newInstance());
-		}
-
 		double[] simArgs = ArraysUtil.stringToDoubleArray(simArgsStr);
 
 		LogLog.setQuietMode(true);
@@ -67,19 +59,38 @@ public class Headquarters {
 		int repeatTime = Integer.parseInt(repeatTimeStr);
 		for (int i = 0; i < repeatTime; i++) {
 			String logDir = logDirStr + "/" + i;
-			int res = repeatOnce(alts, ras, rasArgs, sims, simArgs, logDir);
+			int res = repeatOnce(alts, ras, rasArgs, simClassFile,
+					simThreadNum, simArgs, logDir);
 			System.out.println(i + ", " + res);
 		}
 	}
 
+	private static String getClassName(String fileName) {
+		String[] fields = fileName.split("/");
+		String className = fields[fields.length - 1];
+		className = className.split("\\.")[0];
+		return className;
+	}
+
 	private static int repeatOnce(double[][] alts, Ras ras, double[] rasArgs,
-			List<Sim> sims, double[] simArgs, String logDir)
-			throws IOException, ClassNotFoundException, IllegalAccessException,
-			InstantiationException, ExecutionException, InterruptedException {
+			String simClassFile, int simThreadNum, double[] simArgs,
+			String logDir) throws IOException, ClassNotFoundException,
+			IllegalAccessException, InstantiationException, ExecutionException,
+			InterruptedException {
 
 		System.setProperty("log.dir", logDir);
 		PropertyConfigurator.configure(ClassLoader
 				.getSystemResourceAsStream("log4j.properties"));
+
+		List<Sim> sims = new LinkedList<Sim>();
+		String simClassName = getClassName(simClassFile);
+		for (int i = 0; i < simThreadNum; i++) {
+			RaseClassLoader classLoader = new RaseClassLoader(simClassName,
+					simClassFile);
+			classLoader.loadClass(simClassName);
+			sims.add((Sim) Class.forName(simClassName, true, classLoader)
+					.newInstance());
+		}
 
 		MasterImpl master = new MasterImpl(alts, sims);
 		int result = ras.ras(alts, rasArgs, master);

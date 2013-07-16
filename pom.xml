@@ -1,22 +1,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>hk.ust.felab</groupId>
 	<artifactId>rase</artifactId>
-	<packaging>jar</packaging>
-	<version>5.0.0</version>
+	<version>6.0.0</version>
 
-	<name>rase</name>
-	<url>http://rase.wuyangnju.com</url>
+	<packaging>pom</packaging>
+	<modules>
+		<module>rase-core</module>
+		<module>rase-ras</module>
+		<module>rase-sim</module>
+	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<assemblyDirectory>${project.basedir}/src/main/assembly</assemblyDirectory>
 	</properties>
 
 	<build>
-		<finalName>rase</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -48,36 +50,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.4</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2.2</version>
-				<configuration>
-					<descriptors>
-						<descriptor>${assemblyDirectory}/bin.xml</descriptor>
-					</descriptors>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<phase>package</phase>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 
 		<extensions>
@@ -95,52 +67,5 @@
 			<url>ftp://143.89.20.47</url>
 		</repository>
 	</distributionManagement>
-
-	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.10</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.2.2</version>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>umontreal.iro.lecuyer</groupId>
-			<artifactId>ssj</artifactId>
-			<version>2.4</version>
-		</dependency>
-	</dependencies>
-
-	<repositories>
-		<repository>
-			<id>143.89.20.47</id>
-			<name>repo at felab-cluster</name>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</snapshots>
-			<url>http://143.89.20.47/m2/</url>
-			<layout>default</layout>
-		</repository>
-	</repositories>
-
+	
 </project>

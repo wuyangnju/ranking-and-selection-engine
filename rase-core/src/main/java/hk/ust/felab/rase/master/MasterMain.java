@@ -104,9 +104,11 @@ public class MasterMain {
 		LogLog.setQuietMode(true);
 
 		for (int i = 0; i < repeatTime; i++) {
-			int res = repeatOnce(masterCore, rasClass, alts, rasArgs, simArgs,
-					logDir + "/" + i);
-			System.out.println(i + ", " + res);
+			long t1 = System.currentTimeMillis();
+			String res = repeatOnce(masterCore, rasClass, alts, rasArgs,
+					simArgs, logDir + "/" + i);
+			long t2 = System.currentTimeMillis();
+			System.out.println(i + ", " + res + ", " + (t2 - t1) + "ms");
 		}
 
 		if (simIoServer != null) {
@@ -118,11 +120,12 @@ public class MasterMain {
 		executorService.shutdownNow();
 	}
 
-	private static int repeatOnce(MasterCore masterCore, final String rasClass,
-			final double[][] alts, final double[] rasArgs, double[] simArgs,
-			String logDir) throws IOException, ClassNotFoundException,
-			IllegalAccessException, InstantiationException, ExecutionException,
-			InterruptedException, SecurityException, NoSuchMethodException {
+	private static String repeatOnce(MasterCore masterCore,
+			final String rasClass, final double[][] alts,
+			final double[] rasArgs, double[] simArgs, String logDir)
+			throws IOException, ClassNotFoundException, IllegalAccessException,
+			InstantiationException, ExecutionException, InterruptedException,
+			SecurityException, NoSuchMethodException {
 
 		System.setProperty("log.dir", logDir);
 		PropertyConfigurator.configure(ClassLoader
@@ -135,7 +138,7 @@ public class MasterMain {
 
 		LogManager.shutdown();
 
-		return result;
+		return result + masterCore.report();
 	}
 
 	private static double[][] loadAltsFromFile(String file) throws IOException {

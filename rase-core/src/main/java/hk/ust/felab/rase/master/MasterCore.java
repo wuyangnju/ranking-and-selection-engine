@@ -18,11 +18,50 @@ public class MasterCore implements SimHelper, SlaveHelper, SimIoServerHelper {
 	 * t, altId, args, seed
 	 */
 	private transient Logger inputSeq = null;
+	private long inputPutCount;
+	private long inputTakeCount;
+
+	private void inputPut(SimInput simInput) throws InterruptedException {
+		simInputs.put(simInput);
+		inputPutCount++;
+		if (inputSeq.isInfoEnabled()) {
+			inputSeq.info(System.currentTimeMillis() + ", " + simInput);
+		}
+	}
+
+	private SimInput inputTake() throws InterruptedException {
+		SimInput simInput = simInputs.take();
+		inputTakeCount++;
+		while (simInput.syncId == -1) {
+			SimOutput simOutput = new SimOutput(-1, simInput.altId,
+					new double[] { 0 });
+			outputPut(simOutput);
+			simInput = simInputs.take();
+			inputTakeCount++;
+		}
+		return simInput;
+	}
 
 	/**
 	 * t, altId, result
 	 */
 	private transient Logger outputSeq = null;
+	private long outputPutCount;
+	private long outputTakeCount;
+
+	private void outputPut(SimOutput simOutput) throws InterruptedException {
+		simOutputs.put(simOutput);
+		outputPutCount++;
+		if (outputSeq.isInfoEnabled()) {
+			outputSeq.info(System.currentTimeMillis() + ", " + simOutput);
+		}
+	}
+
+	private SimOutput outputTake() throws InterruptedException {
+		SimOutput simOutput = simOutputs.take();
+		outputTakeCount++;
+		return simOutput;
+	}
 
 	private BlockingQueue<SimInput> simInputs;
 	private BlockingQueue<SimOutput> simOutputs;
@@ -60,10 +99,19 @@ public class MasterCore implements SimHelper, SlaveHelper, SimIoServerHelper {
 
 	public void prepare() {
 		inputSeq = Logger.getLogger("input_seq");
+		inputPutCount = 0;
+		inputTakeCount = 0;
 		outputSeq = Logger.getLogger("output_seq");
+		outputPutCount = 0;
+		outputTakeCount = 0;
 		simInputs.clear();
 		simOutputs.clear();
 		repId++;
+	}
+
+	public String report() {
+		return "{" + inputPutCount + ", " + inputTakeCount + ", "
+				+ outputPutCount + ", " + outputTakeCount + "}";
 	}
 
 	@Override
@@ -73,13 +121,10 @@ public class MasterCore implements SimHelper, SlaveHelper, SimIoServerHelper {
 		for (int altID : altIDs) {
 			SimInput simInput = new SimInput(repId, syncId, altID, alts[altID],
 					nextSeed());
-			simInputs.put(simInput);
-			if (inputSeq.isInfoEnabled()) {
-				inputSeq.info(System.currentTimeMillis() + ", " + simInput);
-			}
+			inputPut(simInput);
 		}
 		for (int i = 0; i < ret.length;) {
-			SimOutput simOutput = simOutputs.take();
+			SimOutput simOutput = outputTake();
 			if (simOutput.syncID != syncId) {
 				simOutputs.put(simOutput);
 			} else {
@@ -95,10 +140,7 @@ public class MasterCore implements SimHelper, SlaveHelper, SimIoServerHelper {
 		for (int altID : altIDs) {
 			SimInput simInput = new SimInput(repId, syncId, altID, alts[altID],
 					nextSeed());
-			simInputs.put(simInput);
-			if (inputSeq.isInfoEnabled()) {
-				inputSeq.info(System.currentTimeMillis() + ", " + simInput);
-			}
+			inputPut(simInput);
 		}
 		return simOutputs.size();
 	}
@@ -107,22 +149,14 @@ public class MasterCore implements SimHelper, SlaveHelper, SimIoServerHelper {
 	public int phantomSim(int[] altIDs) throws InterruptedException {
 		for (int altID : altIDs) {
 			SimInput simInput = new SimInput(repId, -1, altID, null, null);
-			if (inputSeq.isInfoEnabled()) {
-				inputSeq.info(System.currentTimeMillis() + ", " + simInput);
-			}
-
-			SimOutput simOutput = new SimOutput(-1, altID, new double[] { 0 });
-			simOutputs.put(simOutput);
-			if (outputSeq.isInfoEnabled()) {
-				outputSeq.info(System.currentTimeMillis() + ", " + simOutput);
-			}
+			inputPut(simInput);
 		}
 		return simOutputs.size();
 	}
 
 	@Override
 	public SimOutput takeSimOutput() throws InterruptedException {
-		SimOutput simOutput = simOutputs.take();
+		SimOutput simOutput = outputTake();
 		return simOutput;
 	}
 
@@ -137,7 +171,7 @@ public class MasterCore implements SimHelper, SlaveHelper, SimIoServerHelper {
 		}
 		SimOutput[] outputs = new SimOutput[n];
 		for (int i = 0; i < n; i++) {
-			outputs[i] = simOutputs.take();
+			outputs[i] = outputTake();
 		}
 		return outputs;
 	}
@@ -149,7 +183,7 @@ public class MasterCore implements SimHelper, SlaveHelper, SimIoServerHelper {
 
 	@Override
 	public SimInput takeSimInput() throws InterruptedException {
-		return simInputs.take();
+		return inputTake();
 	}
 
 	@Override
@@ -159,24 +193,18 @@ public class MasterCore implements SimHelper, SlaveHelper, SimIoServerHelper {
 
 	@Override
 	public void putSimOutput(SimOutput simOutput) throws InterruptedException {
-		if (outputSeq.isInfoEnabled()) {
-			outputSeq.info(System.currentTimeMillis() + ", " + simOutput);
-		}
-		simOutputs.put(simOutput);
+		outputPut(simOutput);
 	}
 
 	@Override
 	public SimInput takeSimInputNet() throws InterruptedException {
-		return simInputs.take();
+		return inputTake();
 	}
 
 	@Override
 	public void putSimOutputNet(SimOutput simOutput)
 			throws InterruptedException {
-		if (outputSeq.isInfoEnabled()) {
-			outputSeq.info(System.currentTimeMillis() + ", " + simOutput);
-		}
-		simOutputs.put(simOutput);
+		outputPut(simOutput);
 	}
 
 }

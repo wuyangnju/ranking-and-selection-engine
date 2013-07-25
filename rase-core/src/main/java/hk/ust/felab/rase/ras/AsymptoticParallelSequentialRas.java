@@ -4,7 +4,7 @@ import hk.ust.felab.rase.Ras;
 import hk.ust.felab.rase.SimHelper;
 import hk.ust.felab.rase.SimOutput;
 
-public class ParallelSequentialRas implements Ras {
+public class AsymptoticParallelSequentialRas implements Ras {
 
 	@Override
 	public int ras(double[][] alts, double[] args, SimHelper simHelper)
@@ -14,34 +14,45 @@ public class ParallelSequentialRas implements Ras {
 		double alpha = args[0];
 		double delta = args[1];
 		int n0 = (int) args[2];
-		double a = (-1.0) / delta * Math.log(2.0 * alpha / (k - 1) * 1.0);
+		double a = -1 * Math.log(2 * alpha / (k - 1));
 
-		// sampling
-		int[] altIDs = new int[k];
+		// first stage
+		int[] altIDs = new int[k * n0];
 		for (int i = 0; i < n0; i++) {
 			for (int j = 0; j < k; j++) {
-				altIDs[j] = j;
+				altIDs[i * k + j] = j;
 			}
-			simHelper.asyncSim(altIDs);
-			simHelper.phantomSim(new int[] { k });
 		}
+		SimOutput[] simOutputs = simHelper.sim(altIDs);
 
-		boolean[] surviving = new boolean[k];
-		int survivingCount = k;
-		for (int i = 0; i < k; i++) {
-			surviving[i] = true;
-		}
-		int readyCount = 0;
 		int[] count = new int[k];
 		double[] sum = new double[k];
 		double[] sumOfSquare = new double[k];
-		for (int i = 0; i < k; i++) {
-			count[i] = 0;
-			sum[i] = 0;
-			sumOfSquare[i] = 0;
-		}
 		double[] mean = new double[k];
 		double[] S2 = new double[k];
+
+		for (SimOutput simOutput : simOutputs) {
+			int i = simOutput.altID;
+			count[i]++;
+			sum[i] += simOutput.result[0];
+			sumOfSquare[i] += Math.pow(simOutput.result[0], 2);
+		}
+
+		boolean[] surviving = new boolean[k];
+		for (int i = 0; i < k; i++) {
+			surviving[i] = true;
+		}
+		int survivingCount = k;
+
+		altIDs = new int[survivingCount];
+		int p = 0;
+		for (int i = 0; i < k; i++) {
+			if (surviving[i]) {
+				altIDs[p++] = i;
+			}
+		}
+		simHelper.asyncSim(altIDs);
+		simHelper.phantomSim(new int[] { k });
 
 		while (survivingCount > 1) {
 			SimOutput simOutput = simHelper.takeSimOutput();
@@ -54,25 +65,11 @@ public class ParallelSequentialRas implements Ras {
 				count[altID]++;
 				sum[altID] += simOutput.result[0];
 				sumOfSquare[altID] += Math.pow(simOutput.result[0], 2);
-
-				if (count[altID] < n0) {
-					continue;
-				}
-
-				if (count[altID] == n0) {
-					readyCount++;
-				}
-
-				mean[altID] = sum[altID] / count[altID];
-				S2[altID] = (sumOfSquare[altID] - count[altID] * mean[altID]
-						* mean[altID])
-						/ (count[altID] - 1);
-
 			} else {
 				// get p
 				// re-sampling
 				altIDs = new int[survivingCount];
-				int p = 0;
+				p = 0;
 				for (int i = 0; i < k; i++) {
 					if (surviving[i]) {
 						altIDs[p++] = i;
@@ -80,10 +77,14 @@ public class ParallelSequentialRas implements Ras {
 				}
 				simHelper.asyncSim(altIDs);
 				simHelper.phantomSim(new int[] { k });
-			}
 
-			// elimination
-			if (readyCount > 2) {
+				for (int i = 0; i < k; i++) {
+					mean[i] = sum[i] / count[i];
+					S2[i] = (sumOfSquare[i] - count[i] * mean[i] * mean[i])
+							/ (count[i] - 1);
+				}
+
+				// elimination
 				for (int i = 0; i < k; i++) {
 					for (int j = 0; j < k; j++) {
 						if (i != j && surviving[i] && surviving[j]) {

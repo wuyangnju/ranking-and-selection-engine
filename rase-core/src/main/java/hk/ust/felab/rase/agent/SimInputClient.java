@@ -12,6 +12,8 @@ public class SimInputClient extends SimIoClient {
 	private static transient final Logger log = Logger
 			.getLogger("slave.client.input");
 
+	public static int count = 0;
+
 	public SimInputClient(final SimIoClientHelper helper) {
 		super(new SimpleChannelHandler() {
 			@Override
@@ -22,6 +24,7 @@ public class SimInputClient extends SimIoClient {
 					helper.putSimInputNet(simInput);
 				}
 				log.debug("input recv");
+				count += simInputs.length;
 				helper.unsetWaitingInput();
 			}
 

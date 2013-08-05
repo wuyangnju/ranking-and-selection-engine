@@ -21,8 +21,8 @@ public class SimIoClient {
 
 	public SimIoClient(final SimpleChannelHandler handler) {
 		bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(
-				Executors.newFixedThreadPool(1),
-				Executors.newFixedThreadPool(1)));
+				Executors.newFixedThreadPool(3),
+				Executors.newFixedThreadPool(3)));
 
 		bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
 			public ChannelPipeline getPipeline() throws Exception {

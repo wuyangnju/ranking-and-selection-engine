@@ -12,6 +12,8 @@ public class SimOutputClient extends SimIoClient {
 	private static transient final Logger log = Logger
 			.getLogger("slave.client.output");
 
+	public static int count = 0;
+
 	public SimOutputClient(final SimIoClientHelper helper) {
 		super(new SimpleChannelHandler() {
 			@Override
@@ -30,6 +32,7 @@ public class SimOutputClient extends SimIoClient {
 	}
 
 	public void putSimOutputs(SimOutput[] simOutputs) {
+		count += simOutputs.length;
 		channel.write(simOutputs);
 	}
 

@@ -84,7 +84,7 @@ public class AgentMain {
 		System.setProperty("log.dir", logDir);
 		PropertyConfigurator.configure(ClassLoader
 				.getSystemResourceAsStream("log4j.properties"));
-		
+
 		AgentCore slaveCore = new AgentCore(simArgs, simInputS2, simInputS1,
 				simOutputS2);
 
@@ -101,13 +101,15 @@ public class AgentMain {
 		for (Sim sim : sims) {
 			executorService.execute(new Slave(sim, slaveCore));
 		}
-		
+
 		SimFinishClient simFinishClient = new SimFinishClient();
 		simFinishClient.start(server, port);
 		simFinishClient.isFinish();
 		SimFinishClient.getCountDownLatch().await();
-		
+
 		LogManager.shutdown();
+
+		System.out.println(SimInputClient.count + ", " + SimOutputClient.count);
 
 		simInputClient.shutdown();
 		simOutputClient.shutdown();

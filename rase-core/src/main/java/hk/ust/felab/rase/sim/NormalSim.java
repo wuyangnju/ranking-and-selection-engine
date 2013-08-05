@@ -8,19 +8,22 @@ public class NormalSim implements Sim {
 
 	@Override
 	public double[] sim(double[] alt, double[] args, long[] seed) {
+		boolean willDelay;
 		int delay;
 		if (args.length != 0) {
+			willDelay = true;
 			delay = (int) args[0];
 		} else {
+			willDelay = false;
 			delay = 0;
 		}
 
 		MRG32k3a mrg32k3a = new MRG32k3a();
 		mrg32k3a.setSeed(seed);
 
-		if (delay != 0) {
+		if (willDelay) {
 			try {
-				Thread.sleep(10000);
+				Thread.sleep(delay);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
